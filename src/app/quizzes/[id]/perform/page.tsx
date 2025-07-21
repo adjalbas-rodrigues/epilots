@@ -295,9 +295,10 @@ export default function QuizPerformPage() {
               <h2 className="text-xl font-bold text-gray-800 mb-2">
                 Questão {currentQuestionIndex + 1}
               </h2>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                {currentQuestion.statement}
-              </p>
+              <div 
+                className="prose-quiz"
+                dangerouslySetInnerHTML={{ __html: currentQuestion.statement }}
+              />
             </div>
 
             {/* Answer Options */}
@@ -325,7 +326,10 @@ export default function QuizPerformPage() {
                     }`}>
                       {choice.label}
                     </span>
-                    <span className="text-gray-700">{choice.description}</span>
+                    <div 
+                      className="prose-quiz flex-1"
+                      dangerouslySetInnerHTML={{ __html: choice.description }}
+                    />
                   </div>
                 </button>
               ))}

@@ -316,7 +316,7 @@ export default function QuizPerformPage() {
                       : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                   } ${submitting ? 'cursor-not-allowed opacity-50' : ''}`}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-center gap-3">
                     <span className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                       selectedAnswer === choice.id
                         ? 'bg-red-500 text-white'

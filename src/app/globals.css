@@ -695,6 +695,14 @@ footer a:hover {
   margin-bottom: 1rem;
 }
 
+.prose-quiz p:last-child {
+  margin-bottom: 0;
+}
+
+.prose-quiz p:first-child {
+  margin-top: 0;
+}
+
 .prose-quiz strong {
   color: #111827;
   font-weight: 700;

@@ -127,14 +127,41 @@ export default function CreateQuizPage() {
       }
     } else {
       setSelectedSubjectIds([...selectedSubjectIds, subjectId])
+      // Seleciona todos os tópicos dessa matéria
+      if (topics[subjectId]) {
+        const topicIds = topics[subjectId].map(t => t.id)
+        setSelectedTopicIds([...selectedTopicIds, ...topicIds])
+      }
     }
   }
+  
+  const isAllTopicsSelected = (subjectId: number) => {
+    if (!topics[subjectId]) return false
+    const subjectTopicIds = topics[subjectId].map(t => t.id)
+    return subjectTopicIds.every(id => selectedTopicIds.includes(id))
+  }
 
-  const toggleTopic = (topicId: number) => {
+  const toggleTopic = (topicId: number, subjectId: number) => {
     if (selectedTopicIds.includes(topicId)) {
       setSelectedTopicIds(selectedTopicIds.filter(id => id !== topicId))
+      // Se estava com todos os tópicos selecionados, remove a matéria da lista
+      if (selectedSubjectIds.includes(subjectId) && topics[subjectId]) {
+        const subjectTopicIds = topics[subjectId].map(t => t.id)
+        const remainingTopics = subjectTopicIds.filter(id => selectedTopicIds.includes(id) && id !== topicId)
+        if (remainingTopics.length === 0) {
+          setSelectedSubjectIds(selectedSubjectIds.filter(id => id !== subjectId))
+        }
+      }
     } else {
       setSelectedTopicIds([...selectedTopicIds, topicId])
+      // Se agora todos os tópicos estão selecionados, adiciona a matéria
+      if (topics[subjectId]) {
+        const subjectTopicIds = topics[subjectId].map(t => t.id)
+        const allSelected = subjectTopicIds.every(id => id === topicId || selectedTopicIds.includes(id))
+        if (allSelected && !selectedSubjectIds.includes(subjectId)) {
+          setSelectedSubjectIds([...selectedSubjectIds, subjectId])
+        }
+      }
     }
   }
 
@@ -336,10 +363,10 @@ export default function CreateQuizPage() {
                           
                           <div className="grid grid-cols-2 gap-4">
                             <label 
-                              className={`relative flex flex-col p-4 border-2 rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg ${
+                              className={`relative flex flex-col p-5 border rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
                                 selectedOrigin === 'aleatorias' 
-                                  ? 'border-orange-500 bg-orange-50 scale-[1.02] shadow-lg' 
-                                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                                  ? 'border-[#eb1c2d] bg-red-50 shadow-md' 
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-md'
                               }`}
                             >
                               <input
@@ -351,27 +378,29 @@ export default function CreateQuizPage() {
                                 className="sr-only"
                               />
                               {selectedOrigin === 'aleatorias' && (
-                                <div className="absolute top-2 right-2 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center animate-scale-in">
-                                  <CheckCircle2 className="w-5 h-5 text-white" />
+                                <div className="absolute top-3 right-3 w-6 h-6 bg-[#eb1c2d] rounded-full flex items-center justify-center">
+                                  <CheckCircle2 className="w-4 h-4 text-white" />
                                 </div>
                               )}
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
-                                  selectedOrigin === 'aleatorias' ? 'bg-orange-500 animate-pulse' : 'bg-orange-500'
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                                  selectedOrigin === 'aleatorias' ? 'bg-[#eb1c2d]' : 'bg-gray-100'
                                 }`}>
-                                  <Shuffle className="w-6 h-6 text-white" />
+                                  <Shuffle className={`w-6 h-6 ${selectedOrigin === 'aleatorias' ? 'text-white' : 'text-gray-600'}`} />
                                 </div>
-                                <span className="font-medium text-gray-800">Aleatorias</span>
+                                <div>
+                                  <span className="font-bold text-gray-900 text-sm">Aleatorias</span>
+                                  <div className="text-2xl font-bold text-[#eb1c2d]">6.304</div>
+                                </div>
                               </div>
-                              <div className="text-3xl font-bold text-gray-800 mb-1 transition-all duration-300">6.304</div>
-                              <p className="text-sm text-gray-600">Questoes aleatorias de todo o banco</p>
+                              <p className="text-xs text-gray-500">Questoes aleatorias de todo o banco</p>
                             </label>
 
                             <label 
-                              className={`relative flex flex-col p-4 border-2 rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg ${
+                              className={`relative flex flex-col p-5 border rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
                                 selectedOrigin === 'ineditas' 
-                                  ? 'border-blue-500 bg-blue-50 scale-[1.02] shadow-lg' 
-                                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                                  ? 'border-[#eb1c2d] bg-red-50 shadow-md' 
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-md'
                               }`}
                             >
                               <input
@@ -383,22 +412,22 @@ export default function CreateQuizPage() {
                                 className="sr-only"
                               />
                               {selectedOrigin === 'ineditas' && (
-                                <div className="absolute top-2 right-2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center animate-scale-in">
-                                  <CheckCircle2 className="w-5 h-5 text-white" />
+                                <div className="absolute top-3 right-3 w-6 h-6 bg-[#eb1c2d] rounded-full flex items-center justify-center">
+                                  <CheckCircle2 className="w-4 h-4 text-white" />
                                 </div>
                               )}
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className={`w-10 h-10 border-2 rounded-lg flex items-center justify-center transition-all duration-300 ${
-                                  selectedOrigin === 'ineditas' ? 'bg-blue-500 border-blue-500' : 'bg-white border-gray-300'
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 border ${
+                                  selectedOrigin === 'ineditas' ? 'bg-[#eb1c2d] border-[#eb1c2d]' : 'bg-white border-gray-200'
                                 }`}>
-                                  <FileQuestion className={`w-6 h-6 transition-colors duration-300 ${
-                                    selectedOrigin === 'ineditas' ? 'text-white' : 'text-gray-600'
-                                  }`} />
+                                  <FileQuestion className={`w-6 h-6 ${selectedOrigin === 'ineditas' ? 'text-white' : 'text-gray-600'}`} />
                                 </div>
-                                <span className="font-medium text-gray-800">Ineditas</span>
+                                <div>
+                                  <span className="font-bold text-gray-900 text-sm">Ineditas</span>
+                                  <div className="text-2xl font-bold text-[#eb1c2d]">5.797</div>
+                                </div>
                               </div>
-                              <div className="text-3xl font-bold text-gray-800 mb-1 transition-all duration-300">5.797</div>
-                              <p className="text-sm text-gray-600">Questoes que voce nunca respondeu</p>
+                              <p className="text-xs text-gray-500">Questoes que voce nunca respondeu</p>
                             </label>
                           </div>
                         </div>
@@ -413,10 +442,10 @@ export default function CreateQuizPage() {
                           
                           <div className="grid grid-cols-2 gap-4">
                             <label 
-                              className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:shadow-md group ${
+                              className={`relative flex items-center p-5 border rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
                                 selectedTypes.includes('acertadas') 
-                                  ? 'border-green-500 bg-green-50 scale-[1.02] shadow-md' 
-                                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                                  ? 'border-green-500 bg-green-50 shadow-md' 
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-md'
                               }`}
                             >
                               <input
@@ -432,23 +461,23 @@ export default function CreateQuizPage() {
                                 }}
                                 className="sr-only"
                               />
-                              <CheckCircle2 className={`w-6 h-6 mr-3 transition-colors duration-300 ${
-                                selectedTypes.includes('acertadas') ? 'text-green-500' : 'text-gray-400 group-hover:text-green-400'
-                              }`} />
-                              <div className="flex-1">
-                                <div className="font-medium text-gray-800">Acertadas</div>
-                                <div className="text-sm text-gray-600">Questoes que voce acertou</div>
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${
+                                selectedTypes.includes('acertadas') ? 'bg-green-500' : 'bg-gray-100'
+                              }`}>
+                                <CheckCircle2 className={`w-5 h-5 ${selectedTypes.includes('acertadas') ? 'text-white' : 'text-gray-600'}`} />
                               </div>
-                              <div className={`text-2xl font-bold transition-all duration-300 ${
-                                selectedTypes.includes('acertadas') ? 'text-green-600' : 'text-gray-800'
-                              }`}>421</div>
+                              <div className="flex-1">
+                                <div className="font-bold text-gray-900 text-sm">Acertadas</div>
+                                <div className="text-xs text-gray-500">Questoes que voce acertou</div>
+                              </div>
+                              <div className="text-2xl font-bold text-green-600">421</div>
                             </label>
 
                             <label 
-                              className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:shadow-md group ${
+                              className={`relative flex items-center p-5 border rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
                                 selectedTypes.includes('erradas') 
-                                  ? 'border-red-500 bg-red-50 scale-[1.02] shadow-md' 
-                                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                                  ? 'border-red-500 bg-red-50 shadow-md' 
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-md'
                               }`}
                             >
                               <input
@@ -464,16 +493,16 @@ export default function CreateQuizPage() {
                                 }}
                                 className="sr-only"
                               />
-                              <XCircle className={`w-6 h-6 mr-3 transition-colors duration-300 ${
-                                selectedTypes.includes('erradas') ? 'text-red-500' : 'text-gray-400 group-hover:text-red-400'
-                              }`} />
-                              <div className="flex-1">
-                                <div className="font-medium text-gray-800">Erradas</div>
-                                <div className="text-sm text-gray-600">Questoes que voce errou anteriormente</div>
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${
+                                selectedTypes.includes('erradas') ? 'bg-red-500' : 'bg-gray-100'
+                              }`}>
+                                <XCircle className={`w-5 h-5 ${selectedTypes.includes('erradas') ? 'text-white' : 'text-gray-600'}`} />
                               </div>
-                              <div className={`text-2xl font-bold transition-all duration-300 ${
-                                selectedTypes.includes('erradas') ? 'text-red-600' : 'text-gray-800'
-                              }`}>259</div>
+                              <div className="flex-1">
+                                <div className="font-bold text-gray-900 text-sm">Erradas</div>
+                                <div className="text-xs text-gray-500">Questoes que voce errou anteriormente</div>
+                              </div>
+                              <div className="text-2xl font-bold text-red-600">259</div>
                             </label>
                           </div>
                         </div>
@@ -488,10 +517,10 @@ export default function CreateQuizPage() {
                           
                           <div className="grid grid-cols-2 gap-4">
                             <label 
-                              className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:shadow-md group ${
+                              className={`relative flex items-center p-5 border rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
                                 selectedBonus.includes('favoritas') 
-                                  ? 'border-yellow-500 bg-yellow-50 scale-[1.02] shadow-md' 
-                                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                                  ? 'border-yellow-500 bg-yellow-50 shadow-md' 
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-md'
                               }`}
                             >
                               <input
@@ -507,20 +536,22 @@ export default function CreateQuizPage() {
                                 }}
                                 className="sr-only"
                               />
-                              <Star className={`w-6 h-6 mr-3 transition-all duration-300 ${
-                                selectedBonus.includes('favoritas') ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400 group-hover:text-yellow-400'
-                              }`} />
-                              <div className="flex-1 font-medium text-gray-800">Favoritas</div>
-                              <div className={`text-2xl font-bold transition-all duration-300 ${
-                                selectedBonus.includes('favoritas') ? 'text-yellow-600' : 'text-gray-800'
-                              }`}>45</div>
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${
+                                selectedBonus.includes('favoritas') ? 'bg-yellow-500' : 'bg-gray-100'
+                              }`}>
+                                <Star className={`w-5 h-5 ${selectedBonus.includes('favoritas') ? 'text-white fill-white' : 'text-gray-600'}`} />
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-bold text-gray-900 text-sm">Favoritas</div>
+                              </div>
+                              <div className="text-2xl font-bold text-yellow-600">45</div>
                             </label>
 
                             <label 
-                              className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:shadow-md group ${
+                              className={`relative flex items-center p-5 border rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
                                 selectedBonus.includes('flagged') 
-                                  ? 'border-purple-500 bg-purple-50 scale-[1.02] shadow-md' 
-                                  : 'border-gray-200 hover:border-gray-300 bg-white'
+                                  ? 'border-purple-500 bg-purple-50 shadow-md' 
+                                  : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-md'
                               }`}
                             >
                               <input
@@ -536,13 +567,15 @@ export default function CreateQuizPage() {
                                 }}
                                 className="sr-only"
                               />
-                              <Flag className={`w-6 h-6 mr-3 transition-all duration-300 ${
-                                selectedBonus.includes('flagged') ? 'text-purple-500 fill-purple-500' : 'text-gray-400 group-hover:text-purple-400'
-                              }`} />
-                              <div className="flex-1 font-medium text-gray-800">Flagged</div>
-                              <div className={`text-2xl font-bold transition-all duration-300 ${
-                                selectedBonus.includes('flagged') ? 'text-purple-600' : 'text-gray-800'
-                              }`}>23</div>
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${
+                                selectedBonus.includes('flagged') ? 'bg-purple-500' : 'bg-gray-100'
+                              }`}>
+                                <Flag className={`w-5 h-5 ${selectedBonus.includes('flagged') ? 'text-white fill-white' : 'text-gray-600'}`} />
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-bold text-gray-900 text-sm">Flagged</div>
+                              </div>
+                              <div className="text-2xl font-bold text-purple-600">23</div>
                             </label>
                           </div>
                         </div>
@@ -570,48 +603,41 @@ export default function CreateQuizPage() {
                         {filteredSubjects.map((subject, index) => (
                           <div 
                             key={subject.id} 
-                            className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 animate-slide-in-right group"
+                            className="border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 animate-slide-in-right"
                             style={{ animationDelay: `${index * 50}ms` }}
                           >
                             <button
                               onClick={() => toggleSubject(subject.id)}
-                              className={`w-full px-4 py-4 text-left transition-all duration-300 flex items-center justify-between ${
-                                selectedSubjectIds.includes(subject.id) 
-                                  ? 'bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-l-red-500' 
+                              className={`w-full px-5 py-5 text-left transition-all duration-300 flex items-center justify-between ${
+                                isAllTopicsSelected(subject.id) 
+                                  ? 'bg-red-50' 
                                   : 'bg-white hover:bg-gray-50'
                               }`}
                             >
                               <div className="flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
-                                  selectedSubjectIds.includes(subject.id) 
-                                    ? 'bg-red-500 shadow-lg animate-scale-in scale-110' 
-                                    : 'bg-gray-100 group-hover:scale-105'
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                                  isAllTopicsSelected(subject.id) 
+                                    ? 'bg-[#eb1c2d] shadow-lg' 
+                                    : 'bg-gray-100 group-hover:bg-gray-200'
                                 }`}>
-                                  <svg className={`w-6 h-6 transition-colors duration-300 ${selectedSubjectIds.includes(subject.id) ? 'text-white' : 'text-gray-600 group-hover:text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className={`w-6 h-6 transition-colors duration-300 ${isAllTopicsSelected(subject.id) ? 'text-white' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                                   </svg>
                                 </div>
                                 <div className="flex-1">
-                                  <h4 className={`font-medium transition-colors duration-300 ${selectedSubjectIds.includes(subject.id) ? 'text-red-700' : 'text-gray-800 group-hover:text-gray-900'}`}>
+                                  <h4 className={`font-bold text-gray-900 transition-colors duration-300`}>
                                     {subject.name}
                                   </h4>
                                   {topics[subject.id] && (
-                                    <p className="text-sm text-gray-500 mt-1 transition-all duration-300 group-hover:text-gray-600">
-                                      {topics[subject.id].length} topicos disponiveis
+                                    <p className="text-sm text-gray-500 mt-0.5">
+                                      {topics[subject.id].filter(t => selectedTopicIds.includes(t.id)).length} de {topics[subject.id].length} assuntos
                                     </p>
                                   )}
                                 </div>
                               </div>
-                              <div className="flex items-center gap-3">
-                                {selectedSubjectIds.includes(subject.id) && (
-                                  <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-fade-in">
-                                    Selecionado
-                                  </div>
-                                )}
-                                <ChevronDown className={`w-5 h-5 text-gray-400 transition-all duration-300 ${
-                                  expandedSubjects.includes(subject.id) ? 'rotate-180' : ''
-                                } group-hover:text-gray-600`} />
-                              </div>
+                              <ChevronDown className={`w-5 h-5 text-gray-400 transition-all duration-300 ${
+                                expandedSubjects.includes(subject.id) ? 'rotate-180' : ''
+                              }`} />
                             </button>
                             
                             {expandedSubjects.includes(subject.id) && topics[subject.id] && (
@@ -620,33 +646,39 @@ export default function CreateQuizPage() {
                                   <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 group">
                                     <input
                                       type="checkbox"
-                                      checked={selectedSubjectIds.includes(subject.id)}
+                                      checked={isAllTopicsSelected(subject.id)}
                                       onChange={() => toggleSubjectSelection(subject.id)}
                                       className="w-4 h-4 text-red-500 focus:ring-red-500 rounded transition-transform duration-200 group-hover:scale-110"
                                     />
-                                    <span className="font-medium text-gray-700 group-hover:text-gray-900">Selecionar toda a materia</span>
+                                    <span className="font-medium text-gray-700 group-hover:text-gray-900">Selecionar todos os assuntos</span>
                                   </label>
                                 </div>
                                 
                                 <div className="border-t border-gray-200 pt-3">
-                                  <p className="text-sm text-gray-600 mb-3">Ou escolha topicos especificos:</p>
+                                  <p className="text-sm text-gray-600 mb-3">Ou escolha assuntos especificos:</p>
                                   <div className="grid gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                                     {topics[subject.id].map((topic, topicIndex) => (
                                       <label 
                                         key={topic.id} 
-                                        className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 group animate-fade-in"
+                                        className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg transition-all duration-200 ${
+                                          selectedTopicIds.includes(topic.id) 
+                                            ? 'bg-blue-50 border border-blue-200' 
+                                            : 'hover:bg-gray-100 border border-transparent'
+                                        }`}
                                         style={{ animationDelay: `${topicIndex * 30}ms` }}
                                       >
                                         <input
                                           type="checkbox"
                                           checked={selectedTopicIds.includes(topic.id)}
-                                          onChange={() => toggleTopic(topic.id)}
-                                          className="w-4 h-4 text-red-500 focus:ring-red-500 rounded transition-transform duration-200 group-hover:scale-110"
+                                          onChange={() => toggleTopic(topic.id, subject.id)}
+                                          className="w-4 h-4 text-[#eb1c2d] focus:ring-[#eb1c2d] rounded"
                                         />
-                                        <svg className="w-4 h-4 text-gray-400 transition-colors duration-200 group-hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className={`w-4 h-4 ${selectedTopicIds.includes(topic.id) ? 'text-blue-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                         </svg>
-                                        <span className="text-gray-700 group-hover:text-gray-900">{topic.name}</span>
+                                        <span className={`${selectedTopicIds.includes(topic.id) ? 'text-gray-900 font-medium' : 'text-gray-700'}`}>
+                                          {topic.name}
+                                        </span>
                                       </label>
                                     ))}
                                   </div>
@@ -780,62 +812,56 @@ export default function CreateQuizPage() {
                         </div>
                       </div>
                     )}
-                    {selectedSubjectIds.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="text-sm text-gray-600 mb-1">Materias:</div>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedSubjectIds.map(subjectId => {
-                            const subject = subjects.find(s => s.id === subjectId)
-                            return subject ? (
-                              <div key={subjectId} className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                                </svg>
-                                {subject.name}
+                    {subjects.map(subject => {
+                      const subjectTopics = topics[subject.id] || []
+                      const selectedSubjectTopics = subjectTopics.filter(t => selectedTopicIds.includes(t.id))
+                      const isFullSubject = isAllTopicsSelected(subject.id)
+                      
+                      if (selectedSubjectTopics.length === 0) return null
+                      
+                      return (
+                        <div key={subject.id} className="space-y-2 pb-3 border-b border-gray-100 last:border-0">
+                          <div className="text-sm text-gray-600 flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                            </svg>
+                            {subject.name}
+                            {isFullSubject && (
+                              <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Completa</span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {isFullSubject ? (
+                              <div className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">
+                                <CheckCircle2 className="w-3 h-3" />
+                                Todos os assuntos
                                 <button
-                                  onClick={() => toggleSubjectSelection(subjectId)}
+                                  onClick={() => toggleSubjectSelection(subject.id)}
                                   className="ml-1 hover:text-red-900"
                                 >
                                   <X className="w-3 h-3" />
                                 </button>
                               </div>
-                            ) : null
-                          })}
+                            ) : (
+                              selectedSubjectTopics.map(topic => (
+                                <div key={topic.id} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                  </svg>
+                                  {topic.name}
+                                  <button
+                                    onClick={() => toggleTopic(topic.id, subject.id)}
+                                    className="ml-1 hover:text-blue-900"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ))
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {selectedTopicIds.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="text-sm text-gray-600 mb-1">Topicos:</div>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedTopicIds.map(topicId => {
-                            // Encontrar o tópico em todos os subjects
-                            let topicName = ''
-                            for (const subjectId in topics) {
-                              const topic = topics[subjectId].find(t => t.id === topicId)
-                              if (topic) {
-                                topicName = topic.name
-                                break
-                              }
-                            }
-                            return topicName ? (
-                              <div key={topicId} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                </svg>
-                                {topicName}
-                                <button
-                                  onClick={() => toggleTopic(topicId)}
-                                  className="ml-1 hover:text-blue-900"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ) : null
-                          })}
-                        </div>
-                      </div>
-                    )}
+                      )
+                    })}
                   </div>
                 )}
               </div>
@@ -844,22 +870,21 @@ export default function CreateQuizPage() {
               <button
                 onClick={handleCreateQuiz}
                 disabled={(selectedSubjectIds.length === 0 && selectedTopicIds.length === 0) || creating}
-                className={`w-full py-4 rounded-lg font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 transform hover:scale-[1.02] ${
+                className={`w-full py-5 px-8 rounded-full font-bold text-sm uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-3 ${
                   (selectedSubjectIds.length > 0 || selectedTopicIds.length > 0) && !creating
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl animate-pulse'
-                    : 'bg-gray-300 cursor-not-allowed opacity-50'
+                    ? 'bg-[#eb1c2d] hover:bg-[#d91929] text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02]'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
                 {creating ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    GERANDO QUEST...
+                    <span>Gerando Quest...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-5 h-5 animate-float" />
-                    GERAR QUEST
-                    <ChevronRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+                    <span>Gerar Quest</span>
+                    <ChevronRight className="w-5 h-5" />
                   </>
                 )}
               </button>

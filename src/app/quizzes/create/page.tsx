@@ -62,6 +62,7 @@ export default function CreateQuizPage() {
   const [topics, setTopics] = useState<{ [key: number]: Topic[] }>({})
   const [selectedTopicIds, setSelectedTopicIds] = useState<number[]>([])
   const [quizName, setQuizName] = useState('Quest #45')
+  const [questionCount, setQuestionCount] = useState(20)
 
   // Mock data for counts
   const totalQuestions = 21304
@@ -176,7 +177,7 @@ export default function CreateQuizPage() {
       // TODO: Atualizar API para suportar múltiplas matérias
       const response = await apiClient.createQuiz(
         selectedSubjectIds[0], // Por enquanto usa a primeira matéria selecionada
-        10, // Default question count
+        questionCount,
         selectedTopicIds.length > 0 ? selectedTopicIds : undefined
       )
       
@@ -268,19 +269,46 @@ export default function CreateQuizPage() {
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Left Column - Quiz Config */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Nome do Quest */}
+              {/* Nome do Quest e Configurações */}
               <div className="bg-white rounded-lg shadow p-6 animate-fade-in">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">Nome do Quest</h2>
-                  <Info className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-help transition-colors" title="De um nome para identificar seu quiz" />
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Nome do Quest */}
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-semibold">Nome do Quest</h2>
+                      <Info className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-help transition-colors" title="De um nome para identificar seu quiz" />
+                    </div>
+                    <input
+                      type="text"
+                      value={quizName}
+                      onChange={(e) => setQuizName(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200 hover:border-gray-400"
+                      placeholder="Digite o nome do quiz..."
+                    />
+                  </div>
+                  
+                  {/* Quantidade de Questões */}
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-lg font-semibold">Quantidade de Questoes</h2>
+                      <Hash className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="number"
+                      value={questionCount}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value)
+                        if (value > 0 && value <= 300) {
+                          setQuestionCount(value)
+                        }
+                      }}
+                      min="1"
+                      max="300"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200 hover:border-gray-400"
+                      placeholder="Numero de questoes..."
+                    />
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  value={quizName}
-                  onChange={(e) => setQuizName(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200 hover:border-gray-400"
-                  placeholder="Digite o nome do quiz..."
-                />
               </div>
 
               {/* Tabs */}

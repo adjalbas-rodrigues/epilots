@@ -29,20 +29,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Verificar se há token salvo e validar
     const checkAuth = async () => {
-      const token = localStorage.getItem('token')
-      if (token) {
-        try {
-          // Tentar buscar o perfil do usuário
-          const response = await apiClient.getStudentProfile()
-          if (response.data) {
-            setUser(response.data)
+      try {
+        const token = localStorage.getItem('auth_token') || localStorage.getItem('token')
+        if (token) {
+          // Setar o token no apiClient primeiro
+          apiClient.setToken(token)
+          
+          try {
+            // Tentar buscar o perfil do usuário
+            const response = await apiClient.getStudentProfile()
+            if (response.data) {
+              setUser(response.data)
+            }
+          } catch (error) {
+            // Token inválido, limpar
+            apiClient.clearToken()
+            setUser(null)
           }
-        } catch (error) {
-          // Token inválido, limpar
-          apiClient.clearToken()
         }
+      } catch (error) {
+        console.error('Error checking auth:', error)
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
     }
 
     checkAuth()
@@ -59,7 +68,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } else {
         response = await apiClient.loginStudent(email, password)
-        if (response.student) {
+        if (response.data) {
+          setUser(response.data.student || response.data)
+          router.push('/quizzes')
+        } else if (response.student) {
           setUser(response.student)
           router.push('/quizzes')
         }
@@ -72,7 +84,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (name: string, email: string, password: string) => {
     try {
       const response = await apiClient.registerStudent(name, email, password)
-      if (response.student) {
+      if (response.data && response.data.student) {
+        setUser(response.data.student)
+        router.push('/quizzes')
+      } else if (response.student) {
         setUser(response.student)
         router.push('/quizzes')
       }

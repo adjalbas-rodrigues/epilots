@@ -9,25 +9,34 @@ interface ApiResponse<T = any> {
 
 class ApiClient {
   private token: string | null = null;
+  private tokenKey = 'auth_token';
 
   constructor() {
-    // Recuperar token do localStorage se existir
-    if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('token');
+    // Token será carregado quando necessário
+  }
+
+  private getToken(): string | null {
+    if (!this.token && typeof window !== 'undefined') {
+      this.token = localStorage.getItem(this.tokenKey);
     }
+    return this.token;
   }
 
   setToken(token: string) {
     this.token = token;
     if (typeof window !== 'undefined') {
-      localStorage.setItem('token', token);
+      localStorage.setItem(this.tokenKey, token);
     }
   }
 
   clearToken() {
     this.token = null;
     if (typeof window !== 'undefined') {
+      localStorage.removeItem(this.tokenKey);
+      // Clear any legacy tokens
       localStorage.removeItem('token');
+      localStorage.removeItem('student_token');
+      localStorage.removeItem('admin_token');
     }
   }
 
@@ -42,8 +51,9 @@ class ApiClient {
       ...options.headers,
     };
 
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+    const token = this.getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
     console.log(`🌐 ${options.method || 'GET'} ${url}`);

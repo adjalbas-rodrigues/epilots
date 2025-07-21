@@ -50,7 +50,7 @@ export default function CreateQuizPage() {
   const { showToast } = useToast()
   const [activeTab, setActiveTab] = useState<'subjects' | 'options' | 'base' | 'statement'>('options')
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(null)
+  const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([])
   const [expandedSubjects, setExpandedSubjects] = useState<number[]>([])
   const [statementText, setStatementText] = useState('')
   const [selectedOrigin, setSelectedOrigin] = useState('aleatorias')
@@ -107,21 +107,26 @@ export default function CreateQuizPage() {
   )
 
   const toggleSubject = async (subjectId: number) => {
-    if (selectedSubjectId === subjectId) {
-      setSelectedSubjectId(null)
-      setSelectedTopicIds([])
+    if (expandedSubjects.includes(subjectId)) {
       setExpandedSubjects(expandedSubjects.filter(id => id !== subjectId))
     } else {
-      setSelectedSubjectId(subjectId)
-      setSelectedTopicIds([])
-      
       if (!topics[subjectId]) {
         await fetchTopics(subjectId)
       }
-      
-      if (!expandedSubjects.includes(subjectId)) {
-        setExpandedSubjects([...expandedSubjects, subjectId])
+      setExpandedSubjects([...expandedSubjects, subjectId])
+    }
+  }
+
+  const toggleSubjectSelection = (subjectId: number) => {
+    if (selectedSubjectIds.includes(subjectId)) {
+      setSelectedSubjectIds(selectedSubjectIds.filter(id => id !== subjectId))
+      // Remove todos os tópicos dessa matéria
+      if (topics[subjectId]) {
+        const topicIds = topics[subjectId].map(t => t.id)
+        setSelectedTopicIds(selectedTopicIds.filter(id => !topicIds.includes(id)))
       }
+    } else {
+      setSelectedSubjectIds([...selectedSubjectIds, subjectId])
     }
   }
 
@@ -134,15 +139,16 @@ export default function CreateQuizPage() {
   }
 
   const handleCreateQuiz = async () => {
-    if (!selectedSubjectId) {
-      showToast('Selecione uma materia', 'error')
+    if (selectedSubjectIds.length === 0 && selectedTopicIds.length === 0) {
+      showToast('Selecione pelo menos uma materia ou topico', 'error')
       return
     }
 
     try {
       setCreating(true)
+      // TODO: Atualizar API para suportar múltiplas matérias
       const response = await apiClient.createQuiz(
-        selectedSubjectId,
+        selectedSubjectIds[0], // Por enquanto usa a primeira matéria selecionada
         10, // Default question count
         selectedTopicIds.length > 0 ? selectedTopicIds : undefined
       )
@@ -162,7 +168,7 @@ export default function CreateQuizPage() {
     setSelectedTypes([])
     setSelectedBonus([])
     setStatementText('')
-    setSelectedSubjectId(null)
+    setSelectedSubjectIds([])
     setSelectedTopicIds([])
     setExpandedSubjects([])
   }
@@ -172,7 +178,7 @@ export default function CreateQuizPage() {
     if (selectedOrigin !== 'aleatorias') count++
     if (selectedTypes.length > 0) count += selectedTypes.length
     if (selectedBonus.length > 0) count += selectedBonus.length
-    if (selectedSubjectId) count++
+    if (selectedSubjectIds.length > 0) count += selectedSubjectIds.length
     if (selectedTopicIds.length > 0) count += selectedTopicIds.length
     if (statementText) count++
     return count
@@ -182,10 +188,43 @@ export default function CreateQuizPage() {
     return (
       <>
         <Navbar isAuthenticated={true} />
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-red-600 mx-auto mb-4" />
-            <p className="text-gray-600">Carregando...</p>
+        <Breadcrumbs />
+        <div className="min-h-screen bg-gray-50">
+          <div className="container mx-auto px-4 py-6">
+            <div className="grid lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                {/* Skeleton for Nome do Quest */}
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="h-6 bg-gray-200 rounded w-32 mb-4 animate-pulse"></div>
+                  <div className="h-10 bg-gray-200 rounded w-full animate-pulse"></div>
+                </div>
+                
+                {/* Skeleton for Tabs */}
+                <div className="bg-white rounded-lg shadow">
+                  <div className="border-b border-gray-200 p-1">
+                    <div className="flex gap-4">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="h-10 bg-gray-200 rounded w-32 animate-pulse"></div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="h-24 bg-gray-200 rounded animate-pulse"></div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="lg:col-span-1">
+                <div className="bg-white rounded-lg shadow p-6">
+                  <div className="h-6 bg-gray-200 rounded w-40 mb-6 animate-pulse"></div>
+                  <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </>
@@ -203,13 +242,17 @@ export default function CreateQuizPage() {
             {/* Left Column - Quiz Config */}
             <div className="lg:col-span-2 space-y-6">
               {/* Nome do Quest */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-lg font-semibold mb-4">Nome do Quest</h2>
+              <div className="bg-white rounded-lg shadow p-6 animate-fade-in">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">Nome do Quest</h2>
+                  <Info className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-help transition-colors" title="De um nome para identificar seu quiz" />
+                </div>
                 <input
                   type="text"
                   value={quizName}
                   onChange={(e) => setQuizName(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200 hover:border-gray-400"
+                  placeholder="Digite o nome do quiz..."
                 />
               </div>
 
@@ -274,7 +317,7 @@ export default function CreateQuizPage() {
 
                 <div className="p-6">
                   {activeTab === 'options' && (
-                    <div className="space-y-6">
+                    <div className="space-y-6 animate-fade-in">
                       {/* Filtro de Questoes */}
                       <div>
                         <h3 className="text-base font-medium text-gray-800 mb-2 flex items-center gap-2">
@@ -293,9 +336,9 @@ export default function CreateQuizPage() {
                           
                           <div className="grid grid-cols-2 gap-4">
                             <label 
-                              className={`relative flex flex-col p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                              className={`relative flex flex-col p-4 border-2 rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg ${
                                 selectedOrigin === 'aleatorias' 
-                                  ? 'border-orange-500 bg-orange-50' 
+                                  ? 'border-orange-500 bg-orange-50 scale-[1.02] shadow-lg' 
                                   : 'border-gray-200 hover:border-gray-300 bg-white'
                               }`}
                             >
@@ -308,24 +351,26 @@ export default function CreateQuizPage() {
                                 className="sr-only"
                               />
                               {selectedOrigin === 'aleatorias' && (
-                                <div className="absolute top-2 right-2 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                                <div className="absolute top-2 right-2 w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center animate-scale-in">
                                   <CheckCircle2 className="w-5 h-5 text-white" />
                                 </div>
                               )}
                               <div className="flex items-center gap-2 mb-2">
-                                <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                                  selectedOrigin === 'aleatorias' ? 'bg-orange-500 animate-pulse' : 'bg-orange-500'
+                                }`}>
                                   <Shuffle className="w-6 h-6 text-white" />
                                 </div>
                                 <span className="font-medium text-gray-800">Aleatorias</span>
                               </div>
-                              <div className="text-3xl font-bold text-gray-800 mb-1">6.304</div>
+                              <div className="text-3xl font-bold text-gray-800 mb-1 transition-all duration-300">6.304</div>
                               <p className="text-sm text-gray-600">Questoes aleatorias de todo o banco</p>
                             </label>
 
                             <label 
-                              className={`relative flex flex-col p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                              className={`relative flex flex-col p-4 border-2 rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg ${
                                 selectedOrigin === 'ineditas' 
-                                  ? 'border-blue-500 bg-blue-50' 
+                                  ? 'border-blue-500 bg-blue-50 scale-[1.02] shadow-lg' 
                                   : 'border-gray-200 hover:border-gray-300 bg-white'
                               }`}
                             >
@@ -338,17 +383,21 @@ export default function CreateQuizPage() {
                                 className="sr-only"
                               />
                               {selectedOrigin === 'ineditas' && (
-                                <div className="absolute top-2 right-2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <div className="absolute top-2 right-2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center animate-scale-in">
                                   <CheckCircle2 className="w-5 h-5 text-white" />
                                 </div>
                               )}
                               <div className="flex items-center gap-2 mb-2">
-                                <div className="w-10 h-10 bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center">
-                                  <FileQuestion className="w-6 h-6 text-gray-600" />
+                                <div className={`w-10 h-10 border-2 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                                  selectedOrigin === 'ineditas' ? 'bg-blue-500 border-blue-500' : 'bg-white border-gray-300'
+                                }`}>
+                                  <FileQuestion className={`w-6 h-6 transition-colors duration-300 ${
+                                    selectedOrigin === 'ineditas' ? 'text-white' : 'text-gray-600'
+                                  }`} />
                                 </div>
                                 <span className="font-medium text-gray-800">Ineditas</span>
                               </div>
-                              <div className="text-3xl font-bold text-gray-800 mb-1">5.797</div>
+                              <div className="text-3xl font-bold text-gray-800 mb-1 transition-all duration-300">5.797</div>
                               <p className="text-sm text-gray-600">Questoes que voce nunca respondeu</p>
                             </label>
                           </div>
@@ -364,9 +413,9 @@ export default function CreateQuizPage() {
                           
                           <div className="grid grid-cols-2 gap-4">
                             <label 
-                              className={`relative flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
+                              className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:shadow-md group ${
                                 selectedTypes.includes('acertadas') 
-                                  ? 'border-green-500 bg-green-50' 
+                                  ? 'border-green-500 bg-green-50 scale-[1.02] shadow-md' 
                                   : 'border-gray-200 hover:border-gray-300 bg-white'
                               }`}
                             >
@@ -383,18 +432,22 @@ export default function CreateQuizPage() {
                                 }}
                                 className="sr-only"
                               />
-                              <CheckCircle2 className="w-6 h-6 text-gray-400 mr-3" />
+                              <CheckCircle2 className={`w-6 h-6 mr-3 transition-colors duration-300 ${
+                                selectedTypes.includes('acertadas') ? 'text-green-500' : 'text-gray-400 group-hover:text-green-400'
+                              }`} />
                               <div className="flex-1">
                                 <div className="font-medium text-gray-800">Acertadas</div>
                                 <div className="text-sm text-gray-600">Questoes que voce acertou</div>
                               </div>
-                              <div className="text-2xl font-bold text-gray-800">421</div>
+                              <div className={`text-2xl font-bold transition-all duration-300 ${
+                                selectedTypes.includes('acertadas') ? 'text-green-600' : 'text-gray-800'
+                              }`}>421</div>
                             </label>
 
                             <label 
-                              className={`relative flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
+                              className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:shadow-md group ${
                                 selectedTypes.includes('erradas') 
-                                  ? 'border-red-500 bg-red-50' 
+                                  ? 'border-red-500 bg-red-50 scale-[1.02] shadow-md' 
                                   : 'border-gray-200 hover:border-gray-300 bg-white'
                               }`}
                             >
@@ -411,12 +464,16 @@ export default function CreateQuizPage() {
                                 }}
                                 className="sr-only"
                               />
-                              <XCircle className="w-6 h-6 text-gray-400 mr-3" />
+                              <XCircle className={`w-6 h-6 mr-3 transition-colors duration-300 ${
+                                selectedTypes.includes('erradas') ? 'text-red-500' : 'text-gray-400 group-hover:text-red-400'
+                              }`} />
                               <div className="flex-1">
                                 <div className="font-medium text-gray-800">Erradas</div>
                                 <div className="text-sm text-gray-600">Questoes que voce errou anteriormente</div>
                               </div>
-                              <div className="text-2xl font-bold text-gray-800">259</div>
+                              <div className={`text-2xl font-bold transition-all duration-300 ${
+                                selectedTypes.includes('erradas') ? 'text-red-600' : 'text-gray-800'
+                              }`}>259</div>
                             </label>
                           </div>
                         </div>
@@ -431,9 +488,9 @@ export default function CreateQuizPage() {
                           
                           <div className="grid grid-cols-2 gap-4">
                             <label 
-                              className={`relative flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
+                              className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:shadow-md group ${
                                 selectedBonus.includes('favoritas') 
-                                  ? 'border-yellow-500 bg-yellow-50' 
+                                  ? 'border-yellow-500 bg-yellow-50 scale-[1.02] shadow-md' 
                                   : 'border-gray-200 hover:border-gray-300 bg-white'
                               }`}
                             >
@@ -450,15 +507,19 @@ export default function CreateQuizPage() {
                                 }}
                                 className="sr-only"
                               />
-                              <Star className="w-6 h-6 text-gray-400 mr-3" />
+                              <Star className={`w-6 h-6 mr-3 transition-all duration-300 ${
+                                selectedBonus.includes('favoritas') ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400 group-hover:text-yellow-400'
+                              }`} />
                               <div className="flex-1 font-medium text-gray-800">Favoritas</div>
-                              <div className="text-2xl font-bold text-gray-800">45</div>
+                              <div className={`text-2xl font-bold transition-all duration-300 ${
+                                selectedBonus.includes('favoritas') ? 'text-yellow-600' : 'text-gray-800'
+                              }`}>45</div>
                             </label>
 
                             <label 
-                              className={`relative flex items-center p-4 border rounded-lg cursor-pointer transition-all ${
+                              className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-[1.02] hover:shadow-md group ${
                                 selectedBonus.includes('flagged') 
-                                  ? 'border-purple-500 bg-purple-50' 
+                                  ? 'border-purple-500 bg-purple-50 scale-[1.02] shadow-md' 
                                   : 'border-gray-200 hover:border-gray-300 bg-white'
                               }`}
                             >
@@ -475,9 +536,13 @@ export default function CreateQuizPage() {
                                 }}
                                 className="sr-only"
                               />
-                              <Flag className="w-6 h-6 text-gray-400 mr-3" />
+                              <Flag className={`w-6 h-6 mr-3 transition-all duration-300 ${
+                                selectedBonus.includes('flagged') ? 'text-purple-500 fill-purple-500' : 'text-gray-400 group-hover:text-purple-400'
+                              }`} />
                               <div className="flex-1 font-medium text-gray-800">Flagged</div>
-                              <div className="text-2xl font-bold text-gray-800">23</div>
+                              <div className={`text-2xl font-bold transition-all duration-300 ${
+                                selectedBonus.includes('flagged') ? 'text-purple-600' : 'text-gray-800'
+                              }`}>23</div>
                             </label>
                           </div>
                         </div>
@@ -487,55 +552,104 @@ export default function CreateQuizPage() {
 
                   {activeTab === 'subjects' && (
                     <div>
-                      <h3 className="text-base font-medium text-gray-800 mb-6">Selecione os assuntos para filtrar as questoes</h3>
-                      <div className="relative mb-4">
+                      <h3 className="text-base font-medium text-gray-800 mb-2">Selecione os assuntos para filtrar as questoes</h3>
+                      <p className="text-sm text-gray-600 mb-6">Escolha uma materia inteira ou selecione topicos especificos</p>
+                      
+                      <div className="relative mb-6">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                         <input
                           type="text"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                           placeholder="Buscar materia..."
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
                         />
                       </div>
 
-                      <div className="space-y-2 max-h-96 overflow-y-auto">
-                        {filteredSubjects.map((subject) => (
-                          <div key={subject.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                      <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                        {filteredSubjects.map((subject, index) => (
+                          <div 
+                            key={subject.id} 
+                            className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 animate-slide-in-right group"
+                            style={{ animationDelay: `${index * 50}ms` }}
+                          >
                             <button
                               onClick={() => toggleSubject(subject.id)}
-                              className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center justify-between ${
-                                selectedSubjectId === subject.id ? 'bg-red-50' : ''
+                              className={`w-full px-4 py-4 text-left transition-all duration-300 flex items-center justify-between ${
+                                selectedSubjectIds.includes(subject.id) 
+                                  ? 'bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-l-red-500' 
+                                  : 'bg-white hover:bg-gray-50'
                               }`}
                             >
-                              <div className="flex items-center gap-3">
-                                <input
-                                  type="radio"
-                                  checked={selectedSubjectId === subject.id}
-                                  onChange={() => {}}
-                                  className="text-red-500 focus:ring-red-500"
-                                />
-                                <span className="text-gray-700">{subject.name}</span>
+                              <div className="flex items-center gap-4">
+                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                                  selectedSubjectIds.includes(subject.id) 
+                                    ? 'bg-red-500 shadow-lg animate-scale-in scale-110' 
+                                    : 'bg-gray-100 group-hover:scale-105'
+                                }`}>
+                                  <svg className={`w-6 h-6 transition-colors duration-300 ${selectedSubjectIds.includes(subject.id) ? 'text-white' : 'text-gray-600 group-hover:text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                                  </svg>
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className={`font-medium transition-colors duration-300 ${selectedSubjectIds.includes(subject.id) ? 'text-red-700' : 'text-gray-800 group-hover:text-gray-900'}`}>
+                                    {subject.name}
+                                  </h4>
+                                  {topics[subject.id] && (
+                                    <p className="text-sm text-gray-500 mt-1 transition-all duration-300 group-hover:text-gray-600">
+                                      {topics[subject.id].length} topicos disponiveis
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                              <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${
-                                expandedSubjects.includes(subject.id) ? 'rotate-180' : ''
-                              }`} />
+                              <div className="flex items-center gap-3">
+                                {selectedSubjectIds.includes(subject.id) && (
+                                  <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-fade-in">
+                                    Selecionado
+                                  </div>
+                                )}
+                                <ChevronDown className={`w-5 h-5 text-gray-400 transition-all duration-300 ${
+                                  expandedSubjects.includes(subject.id) ? 'rotate-180' : ''
+                                } group-hover:text-gray-600`} />
+                              </div>
                             </button>
                             
                             {expandedSubjects.includes(subject.id) && topics[subject.id] && (
-                              <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
-                                <div className="space-y-2">
-                                  {topics[subject.id].map((topic) => (
-                                    <label key={topic.id} className="flex items-center gap-3 cursor-pointer">
-                                      <input
-                                        type="checkbox"
-                                        checked={selectedTopicIds.includes(topic.id)}
-                                        onChange={() => toggleTopic(topic.id)}
-                                        className="text-red-500 focus:ring-red-500 rounded"
-                                      />
-                                      <span className="text-gray-700">{topic.name}</span>
-                                    </label>
-                                  ))}
+                              <div className="bg-gradient-to-b from-gray-50 to-white px-4 py-4 border-t border-gray-200 animate-slide-down">
+                                <div className="mb-3">
+                                  <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 group">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedSubjectIds.includes(subject.id)}
+                                      onChange={() => toggleSubjectSelection(subject.id)}
+                                      className="w-4 h-4 text-red-500 focus:ring-red-500 rounded transition-transform duration-200 group-hover:scale-110"
+                                    />
+                                    <span className="font-medium text-gray-700 group-hover:text-gray-900">Selecionar toda a materia</span>
+                                  </label>
+                                </div>
+                                
+                                <div className="border-t border-gray-200 pt-3">
+                                  <p className="text-sm text-gray-600 mb-3">Ou escolha topicos especificos:</p>
+                                  <div className="grid gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                    {topics[subject.id].map((topic, topicIndex) => (
+                                      <label 
+                                        key={topic.id} 
+                                        className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 group animate-fade-in"
+                                        style={{ animationDelay: `${topicIndex * 30}ms` }}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedTopicIds.includes(topic.id)}
+                                          onChange={() => toggleTopic(topic.id)}
+                                          className="w-4 h-4 text-red-500 focus:ring-red-500 rounded transition-transform duration-200 group-hover:scale-110"
+                                        />
+                                        <svg className="w-4 h-4 text-gray-400 transition-colors duration-200 group-hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                        </svg>
+                                        <span className="text-gray-700 group-hover:text-gray-900">{topic.name}</span>
+                                      </label>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
                             )}
@@ -589,13 +703,19 @@ export default function CreateQuizPage() {
                 {/* Numero de questoes */}
                 <div className="text-center mb-6">
                   <div className="flex items-center justify-center gap-3 mb-2">
-                    <FileQuestion className="w-12 h-12 text-blue-600" />
-                    <div className="text-5xl font-bold text-gray-800">{totalQuestions.toLocaleString()}</div>
+                    <FileQuestion className="w-12 h-12 text-blue-600 animate-float" />
+                    <div className="text-5xl font-bold text-gray-800 transition-all duration-500 transform hover:scale-105">
+                      {totalQuestions.toLocaleString()}
+                    </div>
                   </div>
                   <p className="text-gray-600">questoes</p>
                   <div className="flex items-center justify-center gap-2 mt-2">
-                    <TrendingUp className="w-4 h-4 text-orange-500" />
-                    <p className="text-sm text-orange-600">{getActiveFiltersCount()} filtros ativos</p>
+                    <TrendingUp className={`w-4 h-4 text-orange-500 transition-transform duration-300 ${
+                      getActiveFiltersCount() > 0 ? 'animate-bounce' : ''
+                    }`} />
+                    <p className="text-sm text-orange-600 transition-all duration-300">
+                      {getActiveFiltersCount()} filtros ativos
+                    </p>
                   </div>
                 </div>
 
@@ -608,35 +728,112 @@ export default function CreateQuizPage() {
                 ) : (
                   <div className="space-y-3 border-t border-gray-200 pt-4">
                     {selectedOrigin !== 'aleatorias' && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Origem:</span>
-                        <span className="font-medium text-gray-800">Ineditas</span>
+                      <div className="space-y-2">
+                        <div className="text-sm text-gray-600 mb-1">Origem:</div>
+                        <div className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm">
+                          <FileQuestion className="w-3 h-3" />
+                          Ineditas
+                          <button
+                            onClick={() => setSelectedOrigin('aleatorias')}
+                            className="ml-1 hover:text-orange-900"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     )}
-                    {selectedTypes.map(type => (
-                      <div key={type} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Tipo:</span>
-                        <span className="font-medium text-gray-800">{type}</span>
+                    {selectedTypes.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="text-sm text-gray-600 mb-1">Tipo:</div>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedTypes.map(type => (
+                            <div key={type} className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                              {type === 'acertadas' ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                              {type === 'acertadas' ? 'Acertadas' : 'Erradas'}
+                              <button
+                                onClick={() => setSelectedTypes([])}
+                                className="ml-1 hover:text-green-900"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ))}
-                    {selectedBonus.map(bonus => (
-                      <div key={bonus} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Filtro:</span>
-                        <span className="font-medium text-gray-800">{bonus}</span>
+                    )}
+                    {selectedBonus.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="text-sm text-gray-600 mb-1">Filtros:</div>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedBonus.map(bonus => (
+                            <div key={bonus} className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
+                              {bonus === 'favoritas' ? <Star className="w-3 h-3" /> : <Flag className="w-3 h-3" />}
+                              {bonus === 'favoritas' ? 'Favoritas' : 'Flagged'}
+                              <button
+                                onClick={() => setSelectedBonus(selectedBonus.filter(b => b !== bonus))}
+                                className="ml-1 hover:text-purple-900"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ))}
-                    {selectedSubjectId && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Materia:</span>
-                        <span className="font-medium text-gray-800">
-                          {subjects.find(s => s.id === selectedSubjectId)?.name}
-                        </span>
+                    )}
+                    {selectedSubjectIds.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="text-sm text-gray-600 mb-1">Materias:</div>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedSubjectIds.map(subjectId => {
+                            const subject = subjects.find(s => s.id === subjectId)
+                            return subject ? (
+                              <div key={subjectId} className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                                </svg>
+                                {subject.name}
+                                <button
+                                  onClick={() => toggleSubjectSelection(subjectId)}
+                                  className="ml-1 hover:text-red-900"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ) : null
+                          })}
+                        </div>
                       </div>
                     )}
                     {selectedTopicIds.length > 0 && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Topicos:</span>
-                        <span className="font-medium text-gray-800">{selectedTopicIds.length} selecionados</span>
+                      <div className="space-y-2">
+                        <div className="text-sm text-gray-600 mb-1">Topicos:</div>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedTopicIds.map(topicId => {
+                            // Encontrar o tópico em todos os subjects
+                            let topicName = ''
+                            for (const subjectId in topics) {
+                              const topic = topics[subjectId].find(t => t.id === topicId)
+                              if (topic) {
+                                topicName = topic.name
+                                break
+                              }
+                            }
+                            return topicName ? (
+                              <div key={topicId} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                                {topicName}
+                                <button
+                                  onClick={() => toggleTopic(topicId)}
+                                  className="ml-1 hover:text-blue-900"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ) : null
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -646,11 +843,11 @@ export default function CreateQuizPage() {
               {/* Gerar Quest Button */}
               <button
                 onClick={handleCreateQuiz}
-                disabled={!selectedSubjectId || creating}
-                className={`w-full py-4 rounded-lg font-bold text-white transition-all flex items-center justify-center gap-2 ${
-                  selectedSubjectId && !creating
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg'
-                    : 'bg-gray-300 cursor-not-allowed'
+                disabled={(selectedSubjectIds.length === 0 && selectedTopicIds.length === 0) || creating}
+                className={`w-full py-4 rounded-lg font-bold text-white transition-all duration-300 flex items-center justify-center gap-2 transform hover:scale-[1.02] ${
+                  (selectedSubjectIds.length > 0 || selectedTopicIds.length > 0) && !creating
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl animate-pulse'
+                    : 'bg-gray-300 cursor-not-allowed opacity-50'
                 }`}
               >
                 {creating ? (
@@ -660,9 +857,9 @@ export default function CreateQuizPage() {
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-5 h-5" />
+                    <Sparkles className="w-5 h-5 animate-float" />
                     GERAR QUEST
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
                   </>
                 )}
               </button>

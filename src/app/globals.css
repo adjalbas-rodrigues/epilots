@@ -32,6 +32,25 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Lato', sans-serif;
 }
 
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
 
 /* Elite Pilots Button Styles */
 .btn-epilots {
@@ -549,6 +568,26 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+@keyframes slide-down {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 500px;
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 @keyframes shimmer {
   0% {
     transform: translateX(-200%) skewX(-12deg);
@@ -567,16 +606,37 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-25%);
+  }
+}
+
 .animate-fade-in {
   animation: fade-in 0.5s ease-out;
+  animation-fill-mode: both;
 }
 
 .animate-scale-in {
   animation: scale-in 0.3s ease-out;
+  animation-fill-mode: both;
 }
 
 .animate-slide-in-right {
   animation: slide-in-right 0.4s ease-out;
+  animation-fill-mode: both;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .animate-shimmer {
@@ -585,6 +645,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .animate-float {
   animation: float 3s ease-in-out infinite;
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
 }
 
 /* Gradient Text */

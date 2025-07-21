@@ -606,57 +606,56 @@ export default function CreateQuizPage() {
                             className="border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 animate-slide-in-right"
                             style={{ animationDelay: `${index * 50}ms` }}
                           >
-                            <button
-                              onClick={() => toggleSubject(subject.id)}
-                              className={`w-full px-5 py-5 text-left transition-all duration-300 flex items-center justify-between ${
-                                isAllTopicsSelected(subject.id) 
-                                  ? 'bg-red-50' 
-                                  : 'bg-white hover:bg-gray-50'
-                              }`}
-                            >
-                              <div className="flex items-center gap-4">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                                  isAllTopicsSelected(subject.id) 
-                                    ? 'bg-[#eb1c2d] shadow-lg' 
-                                    : 'bg-gray-100 group-hover:bg-gray-200'
-                                }`}>
-                                  <svg className={`w-6 h-6 transition-colors duration-300 ${isAllTopicsSelected(subject.id) ? 'text-white' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                                  </svg>
+                            <div className={`px-5 py-5 transition-all duration-300 ${
+                              isAllTopicsSelected(subject.id) 
+                                ? 'bg-red-50' 
+                                : 'bg-white'
+                            }`}>
+                              <button
+                                onClick={() => toggleSubject(subject.id)}
+                                className="w-full text-left flex items-center justify-between"
+                              >
+                                <div className="flex items-center gap-4">
+                                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                                    isAllTopicsSelected(subject.id) 
+                                      ? 'bg-[#eb1c2d] shadow-lg' 
+                                      : 'bg-gray-100'
+                                  }`}>
+                                    <svg className={`w-6 h-6 transition-colors duration-300 ${isAllTopicsSelected(subject.id) ? 'text-white' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                                    </svg>
+                                  </div>
+                                  <div className="flex-1">
+                                    <h4 className={`font-bold text-gray-900 transition-colors duration-300`}>
+                                      {subject.name}
+                                    </h4>
+                                    {topics[subject.id] && (
+                                      <p className="text-sm text-gray-500 mt-0.5">
+                                        {topics[subject.id].filter(t => selectedTopicIds.includes(t.id)).length} de {topics[subject.id].length} assuntos
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="flex-1">
-                                  <h4 className={`font-bold text-gray-900 transition-colors duration-300`}>
-                                    {subject.name}
-                                  </h4>
-                                  {topics[subject.id] && (
-                                    <p className="text-sm text-gray-500 mt-0.5">
-                                      {topics[subject.id].filter(t => selectedTopicIds.includes(t.id)).length} de {topics[subject.id].length} assuntos
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                              <ChevronDown className={`w-5 h-5 text-gray-400 transition-all duration-300 ${
-                                expandedSubjects.includes(subject.id) ? 'rotate-180' : ''
-                              }`} />
-                            </button>
-                            
-                            {expandedSubjects.includes(subject.id) && topics[subject.id] && (
-                              <div className="bg-gradient-to-b from-gray-50 to-white px-4 py-4 border-t border-gray-200 animate-slide-down">
-                                <div className="mb-3">
-                                  <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 group">
+                                <div className="flex items-center gap-3">
+                                  <label className="flex items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
                                     <input
                                       type="checkbox"
                                       checked={isAllTopicsSelected(subject.id)}
                                       onChange={() => toggleSubjectSelection(subject.id)}
-                                      className="w-4 h-4 text-red-500 focus:ring-red-500 rounded transition-transform duration-200 group-hover:scale-110"
+                                      className="w-5 h-5 text-[#eb1c2d] focus:ring-[#eb1c2d] rounded cursor-pointer"
                                     />
-                                    <span className="font-medium text-gray-700 group-hover:text-gray-900">Selecionar todos os assuntos</span>
                                   </label>
+                                  <ChevronDown className={`w-5 h-5 text-gray-400 transition-all duration-300 ${
+                                    expandedSubjects.includes(subject.id) ? 'rotate-180' : ''
+                                  }`} />
                                 </div>
-                                
-                                <div className="border-t border-gray-200 pt-3">
-                                  <p className="text-sm text-gray-600 mb-3">Ou escolha assuntos especificos:</p>
-                                  <div className="grid gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                              </button>
+                            </div>
+                            
+                            {expandedSubjects.includes(subject.id) && topics[subject.id] && (
+                              <div className="bg-gradient-to-b from-gray-50 to-white px-5 py-4 border-t border-gray-200 animate-slide-down">
+                                <p className="text-sm text-gray-600 mb-3">Ou escolha assuntos especificos:</p>
+                                <div className="grid gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                                     {topics[subject.id].map((topic, topicIndex) => (
                                       <label 
                                         key={topic.id} 
@@ -681,7 +680,6 @@ export default function CreateQuizPage() {
                                         </span>
                                       </label>
                                     ))}
-                                  </div>
                                 </div>
                               </div>
                             )}

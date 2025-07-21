@@ -4,6 +4,7 @@ import './globals.css'
 import { ToastProvider } from '@/hooks/useToast'
 import { AuthProvider } from '@/contexts/AuthContext'
 import ClientAuthProvider from '@/components/ClientAuthProvider'
+import ReduxProvider from '@/providers/ReduxProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -41,13 +42,15 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={inter.className}>
-        <AuthProvider>
-          <ToastProvider>
-            <ClientAuthProvider>
-              {children}
-            </ClientAuthProvider>
-          </ToastProvider>
-        </AuthProvider>
+        <ReduxProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <ClientAuthProvider>
+                {children}
+              </ClientAuthProvider>
+            </ToastProvider>
+          </AuthProvider>
+        </ReduxProvider>
       </body>
     </html>
   )

@@ -1,22 +1,20 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAppSelector } from '@/hooks/useAppSelector'
 import apiClient from '@/lib/api'
 
 export default function ClientAuthProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth()
+  const { token, isAuthenticated } = useAppSelector((state) => state.auth)
 
   useEffect(() => {
-    // Sincronizar o token quando o componente montar no cliente
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('token')
-      if (token && !user) {
-        // Se temos um token mas não temos usuário, algo está errado
-        apiClient.setToken(token)
-      }
+    // Sincronizar o token do Redux com o apiClient
+    if (token && isAuthenticated) {
+      apiClient.setToken(token)
+    } else if (!isAuthenticated) {
+      apiClient.clearToken()
     }
-  }, [user])
+  }, [token, isAuthenticated])
 
   return <>{children}</>
 }

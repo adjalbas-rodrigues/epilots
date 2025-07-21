@@ -92,8 +92,13 @@ class ApiClient {
       body: JSON.stringify({ email, password }),
     });
 
+    console.log('🔐 Login response:', response);
+    
     if (response.token) {
+      console.log('💾 Saving token to localStorage');
       this.setToken(response.token);
+    } else {
+      console.warn('⚠️ No token in response');
     }
 
     return response;

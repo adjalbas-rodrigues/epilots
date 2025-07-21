@@ -1,7 +1,10 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAppDispatch } from '@/hooks/useAppDispatch'
+import { useAppSelector } from '@/hooks/useAppSelector'
+import { loginSuccess, logout as logoutAction, setLoading, setAuthFromStorage } from '@/store/slices/authSlice'
 import apiClient from '@/lib/api'
 
 interface User {
@@ -22,8 +25,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const dispatch = useAppDispatch()
+  const { user, isLoading } = useAppSelector((state) => state.auth)
   const router = useRouter()
 
   useEffect(() => {
@@ -39,40 +42,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Tentar buscar o perfil do usuário
             const response = await apiClient.getStudentProfile()
             if (response.data) {
-              setUser(response.data)
+              dispatch(setAuthFromStorage({ user: response.data, token }))
             }
           } catch (error) {
             // Token inválido, limpar
             apiClient.clearToken()
-            setUser(null)
+            dispatch(logoutAction())
           }
+        } else {
+          dispatch(setLoading(false))
         }
       } catch (error) {
         console.error('Error checking auth:', error)
-      } finally {
-        setIsLoading(false)
+        dispatch(setLoading(false))
       }
     }
 
     checkAuth()
-  }, [])
+  }, [dispatch])
 
   const login = async (email: string, password: string, isAdmin = false) => {
     try {
       let response
       if (isAdmin) {
         response = await apiClient.loginAdmin(email, password)
-        if (response.user) {
-          setUser(response.user)
+        if (response.user && response.token) {
+          dispatch(loginSuccess({ user: response.user, token: response.token }))
           router.push('/admin/home')
         }
       } else {
         response = await apiClient.loginStudent(email, password)
-        if (response.data) {
-          setUser(response.data.student || response.data)
+        if (response.student && response.token) {
+          dispatch(loginSuccess({ user: response.student, token: response.token }))
           router.push('/quizzes')
-        } else if (response.student) {
-          setUser(response.student)
+        } else if (response.data?.student && response.data?.token) {
+          dispatch(loginSuccess({ user: response.data.student, token: response.data.token }))
           router.push('/quizzes')
         }
       }
@@ -84,11 +88,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (name: string, email: string, password: string) => {
     try {
       const response = await apiClient.registerStudent(name, email, password)
-      if (response.data && response.data.student) {
-        setUser(response.data.student)
+      if (response.student && response.token) {
+        dispatch(loginSuccess({ user: response.student, token: response.token }))
         router.push('/quizzes')
-      } else if (response.student) {
-        setUser(response.student)
+      } else if (response.data?.student && response.data?.token) {
+        dispatch(loginSuccess({ user: response.data.student, token: response.data.token }))
         router.push('/quizzes')
       }
     } catch (error: any) {
@@ -98,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     apiClient.clearToken()
-    setUser(null)
+    dispatch(logoutAction())
     router.push('/auth/login')
   }
 

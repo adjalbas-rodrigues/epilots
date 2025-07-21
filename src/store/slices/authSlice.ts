@@ -30,26 +30,12 @@ const authSlice = createSlice({
       state.token = action.payload.token
       state.isAuthenticated = true
       state.isLoading = false
-      
-      // Persist token to localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('auth_token', action.payload.token)
-      }
     },
     logout: (state) => {
       state.user = null
       state.token = null
       state.isAuthenticated = false
       state.isLoading = false
-      
-      // Clear token from localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth_token')
-        // Clear legacy tokens
-        localStorage.removeItem('token')
-        localStorage.removeItem('student_token')
-        localStorage.removeItem('admin_token')
-      }
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload

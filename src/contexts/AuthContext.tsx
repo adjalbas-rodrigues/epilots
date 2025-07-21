@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch } from '@/hooks/useAppDispatch'
 import { useAppSelector } from '@/hooks/useAppSelector'
-import { loginSuccess, logout as logoutAction, setLoading, setAuthFromStorage } from '@/store/slices/authSlice'
+import { loginSuccess, logout as logoutAction } from '@/store/slices/authSlice'
 import apiClient from '@/lib/api'
 
 interface User {
@@ -30,36 +30,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    // Verificar se há token salvo e validar
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('auth_token') || localStorage.getItem('token')
-        if (token) {
-          // Setar o token no apiClient primeiro
-          apiClient.setToken(token)
-          
-          try {
-            // Tentar buscar o perfil do usuário
-            const response = await apiClient.getStudentProfile()
-            if (response.data) {
-              dispatch(setAuthFromStorage({ user: response.data, token }))
-            }
-          } catch (error) {
-            // Token inválido, limpar
-            apiClient.clearToken()
-            dispatch(logoutAction())
-          }
-        } else {
-          dispatch(setLoading(false))
-        }
-      } catch (error) {
-        console.error('Error checking auth:', error)
-        dispatch(setLoading(false))
-      }
-    }
-
-    checkAuth()
-  }, [dispatch])
+    // O Redux Persist já cuida de restaurar o estado
+    // Não precisamos fazer verificações adicionais aqui
+    // O middleware authMiddleware sincroniza o token automaticamente
+  }, [])
 
   const login = async (email: string, password: string, isAdmin = false) => {
     try {
@@ -101,6 +75,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const logout = () => {
+    // Clear all tokens from localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('token')
+      localStorage.removeItem('student_token')
+      localStorage.removeItem('admin_token')
+    }
+    
     apiClient.clearToken()
     dispatch(logoutAction())
     router.push('/auth/login')

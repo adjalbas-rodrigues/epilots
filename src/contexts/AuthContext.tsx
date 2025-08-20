@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch } from '@/hooks/useAppDispatch'
 import { useAppSelector } from '@/hooks/useAppSelector'
-import { loginSuccess, logout as logoutAction } from '@/store/slices/authSlice'
+import { loginSuccess, logout as logoutAction, setLoading } from '@/store/slices/authSlice'
 import apiClient from '@/lib/api'
 
 interface User {
@@ -17,6 +17,7 @@ interface User {
 interface AuthContextType {
   user: User | null
   isLoading: boolean
+  isAuthenticated: boolean
   login: (email: string, password: string, isAdmin?: boolean) => Promise<void>
   logout: () => void
   register: (name: string, email: string, password: string) => Promise<void>
@@ -26,14 +27,31 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch()
-  const { user, isLoading } = useAppSelector((state) => state.auth)
+  const { user, isLoading, token } = useAppSelector((state) => state.auth)
   const router = useRouter()
 
   useEffect(() => {
-    // O Redux Persist já cuida de restaurar o estado
-    // Não precisamos fazer verificações adicionais aqui
-    // O middleware authMiddleware sincroniza o token automaticamente
-  }, [])
+    // Check for saved token on mount
+    const checkAuth = () => {
+      const savedToken = localStorage.getItem('auth_token')
+      const savedUser = localStorage.getItem('auth_user')
+      
+      if (savedToken && savedUser) {
+        try {
+          const userObj = JSON.parse(savedUser)
+          dispatch(loginSuccess({ user: userObj, token: savedToken }))
+          apiClient.setToken(savedToken)
+        } catch (error) {
+          // Invalid saved data, clear it
+          localStorage.removeItem('auth_token')
+          localStorage.removeItem('auth_user')
+        }
+      }
+      dispatch(setLoading(false))
+    }
+    
+    checkAuth()
+  }, [dispatch])
 
   const login = async (email: string, password: string, isAdmin = false) => {
     try {
@@ -41,15 +59,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (isAdmin) {
         response = await apiClient.loginAdmin(email, password)
         if (response.user && response.token) {
+          // Save to localStorage for persistence
+          localStorage.setItem('auth_token', response.token)
+          localStorage.setItem('auth_user', JSON.stringify(response.user))
           dispatch(loginSuccess({ user: response.user, token: response.token }))
           router.push('/admin/home')
         }
       } else {
         response = await apiClient.loginStudent(email, password)
         if (response.student && response.token) {
+          // Save to localStorage for persistence
+          localStorage.setItem('auth_token', response.token)
+          localStorage.setItem('auth_user', JSON.stringify(response.student))
           dispatch(loginSuccess({ user: response.student, token: response.token }))
           router.push('/quizzes')
         } else if (response.data?.student && response.data?.token) {
+          // Save to localStorage for persistence
+          localStorage.setItem('auth_token', response.data.token)
+          localStorage.setItem('auth_user', JSON.stringify(response.data.student))
           dispatch(loginSuccess({ user: response.data.student, token: response.data.token }))
           router.push('/quizzes')
         }
@@ -63,9 +90,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await apiClient.registerStudent(name, email, password)
       if (response.student && response.token) {
+        // Save to localStorage for persistence
+        localStorage.setItem('auth_token', response.token)
+        localStorage.setItem('auth_user', JSON.stringify(response.student))
         dispatch(loginSuccess({ user: response.student, token: response.token }))
         router.push('/quizzes')
       } else if (response.data?.student && response.data?.token) {
+        // Save to localStorage for persistence
+        localStorage.setItem('auth_token', response.data.token)
+        localStorage.setItem('auth_user', JSON.stringify(response.data.student))
         dispatch(loginSuccess({ user: response.data.student, token: response.data.token }))
         router.push('/quizzes')
       }
@@ -78,6 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Clear all tokens from localStorage
     if (typeof window !== 'undefined') {
       localStorage.removeItem('auth_token')
+      localStorage.removeItem('auth_user')
       localStorage.removeItem('token')
       localStorage.removeItem('student_token')
       localStorage.removeItem('admin_token')
@@ -88,8 +122,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push('/auth/login')
   }
 
+  const isAuthenticated = !!user && !!token
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, register }}>
+    <AuthContext.Provider value={{ user, isLoading, isAuthenticated, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   )

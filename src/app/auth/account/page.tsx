@@ -11,12 +11,11 @@ import {
   Target,
   BarChart3
 } from 'lucide-react'
-import { mockStudents } from '@/mocks/data'
 import { useToast } from '@/hooks/useToast'
 
 export default function StudentDashboard() {
   const router = useRouter()
-  const [student, setStudent] = useState(mockStudents[0])
+  const [student, setStudent] = useState<any>(null)
   const { showToast } = useToast()
 
   useEffect(() => {

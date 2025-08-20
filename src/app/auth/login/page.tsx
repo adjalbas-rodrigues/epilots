@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { 
-  User, 
   Lock, 
   Mail,
   Eye,
@@ -20,7 +20,8 @@ import {
 } from 'lucide-react'
 
 export default function StudentLoginPage() {
-  const { login } = useAuth()
+  const { login, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -32,7 +33,12 @@ export default function StudentLoginPage() {
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+    
+    // Redirect if already authenticated
+    if (isAuthenticated && !isLoading) {
+      router.push('/quizzes')
+    }
+  }, [isAuthenticated, isLoading, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,6 +53,23 @@ export default function StudentLoginPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Verificando autenticação...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render login form if already authenticated
+  if (isAuthenticated) {
+    return null
   }
 
   return (

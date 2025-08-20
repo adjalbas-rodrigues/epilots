@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api';
 
 interface ApiResponse<T = any> {
   data?: T;
@@ -40,15 +40,15 @@ class ApiClient {
     }
   }
 
-  private async request<T = any>(
+  async request<T = any>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${API_BASE_URL}${endpoint}`;
     
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string> || {}),
     };
 
     const token = this.getToken();
@@ -139,11 +139,28 @@ class ApiClient {
     return this.request(`/subjects/${subjectId}`);
   }
 
+  // Matter endpoints
+  async getMatters() {
+    return this.request<any[]>('/matters');
+  }
+
+  async getMatterWithTopics(matterId: number) {
+    return this.request(`/matters/${matterId}`);
+  }
+
   // Quiz endpoints
-  async createQuiz(subjectId: number, questionCount: number, topicIds?: number[]) {
+  async createQuiz(
+    questionCount: number, 
+    topicIds: number[], 
+    baseIds?: number[], 
+    feedbackMode: 'immediate' | 'end' = 'immediate',
+    onlyWrong: boolean = false,
+    onlyMarked: boolean = false,
+    name?: string
+  ) {
     return this.request<{ quizId: number; questionCount: number }>('/quizzes', {
       method: 'POST',
-      body: JSON.stringify({ subjectId, questionCount, topicIds }),
+      body: JSON.stringify({ questionCount, topicIds, baseIds, feedbackMode, onlyWrong, onlyMarked, name }),
     });
   }
 
@@ -178,8 +195,16 @@ class ApiClient {
     return this.request(`/quizzes/${quizId}/feedback`);
   }
 
+  async getQuestionFeedback(quizId: number, questionId: number) {
+    return this.request(`/quizzes/${quizId}/question/${questionId}/feedback`);
+  }
+
   async getQuizHistory(limit = 10, offset = 0) {
     return this.request(`/quizzes/history?limit=${limit}&offset=${offset}`);
+  }
+
+  async getReviewStats() {
+    return this.request<{ wrongQuestions: number; markedQuestions: number }>('/quizzes/review-stats');
   }
 
   // Statistics endpoints
@@ -241,11 +266,23 @@ class ApiClient {
     });
   }
 
-  async getQuestions(page = 1, limit = 10, subjectId?: number, search?: string) {
+  async getQuestions(page = 1, limit = 10, subjectId?: number, search?: string, baseId?: number) {
     const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
     if (subjectId) params.append('subject_id', subjectId.toString());
     if (search) params.append('search', search);
+    if (baseId) params.append('baseId', baseId.toString());
     return this.request(`/admin/questions?${params}`);
+  }
+
+  async getQuestionBases() {
+    return this.request('/question-bases');
+  }
+
+  async getQuestionCount(topicIds: number[], baseIds: number[], statementText?: string) {
+    return this.request<{ count: number; filters: any }>('/question-count/count', {
+      method: 'POST',
+      body: JSON.stringify({ topicIds, baseIds, statementText }),
+    });
   }
 
   async createQuestion(data: any) {

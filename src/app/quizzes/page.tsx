@@ -31,6 +31,7 @@ interface Quiz {
   id: number
   studentId: number
   subjectId: number
+  name?: string | null
   startedAt: string
   finishedAt: string | null
   subject: {
@@ -278,7 +279,7 @@ export default function QuizzesPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-4 mb-3">
                         <h4 className="text-lg font-bold text-gray-800">
-                          Quiz #{quiz.id} - {quiz.subject.name}
+                          {quiz.name || `Quiz #${quiz.id}`} - {quiz.subject.name}
                         </h4>
                         {quiz.subject.color && (
                           <span 

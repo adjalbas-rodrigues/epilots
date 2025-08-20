@@ -1,62 +1,62 @@
-# CakePHP específico
-/vendor/
-/config/app_local.php
-/config/.env
-/logs/
-/tmp/
-/webroot/uploads/
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
 
-# Manter o /bin/ - ele contém executáveis importantes do CakePHP
+# testing
+/coverage
 
-# Arquivos de cache
-/tmp/cache/models/*
-/tmp/cache/persistent/*
-/tmp/cache/views/*
-!/tmp/cache/models/empty
-!/tmp/cache/persistent/empty
-!/tmp/cache/views/empty
-!/tmp/empty
+# next.js
+/.next/
+/out/
 
-# Sessões
-/tmp/sessions/*
-!/tmp/sessions/empty
+# production
+/build
 
-# Testes
-/tmp/tests/*
-!/tmp/tests/empty
+# misc
+.DS_Store
+*.pem
 
-# Composer
-/vendor/
-composer.lock
-
-# Arquivos MySQL/Banco de dados
-*.sql
-*.db
-*.sqlite
-mysql-apt-config_*.deb
-
-# Node.js (se usar frontend assets)
-node_modules/
+# debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
 
-# Assets compilados
-/webroot/css/cake.generic.css
-/webroot/js/build/
-/webroot/css/build/
+# local env files
+.env*.local
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# IDEs e Editores
-.vscode/
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# IDE
 .idea/
+.vscode/
 *.swp
 *.swo
 *~
 .DS_Store
 Thumbs.db
 
-# Sistema Operacional
+# OS files
 .DS_Store
 .DS_Store?
 ._*
@@ -65,44 +65,83 @@ Thumbs.db
 ehthumbs.db
 Thumbs.db
 
-# Logs específicos
-*.log
-logs/
-error.log
-access.log
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Package lock files (uncomment if you don't want to commit them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Public folder assets that shouldn't be tracked
+public/materialpublico/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Test coverage
+coverage/
+*.lcov
+.nyc_output
 
 # Backup files
 *.bak
 *.backup
 *.old
 
-# Environment files
-.env
-.env.local
-.env.production
-.env.staging
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# PhpStorm
-.idea/
+# Next.js cache
+.next/
+.cache/
 
-# NetBeans
-nbproject/
+# SWC
+.swc/
 
-# Sublime Text
-*.sublime-project
-*.sublime-workspace
+# PWA files
+**/public/sw.js
+**/public/workbox-*.js
+**/public/worker-*.js
+**/public/sw.js.map
+**/public/workbox-*.js.map
+**/public/worker-*.js.map
 
-# Arquivos de configuração local
-/config/app_local.php
-/config/bootstrap_cli.php
+# Sentry
+.sentryclirc
 
-# Uploads e arquivos de usuário
-/webroot/files/*
-!/webroot/files/empty
-/webroot/img/uploads/*
-!/webroot/img/uploads/empty
+# Storybook
+storybook-static/
 
-# Coverage reports
-coverage/
-*.coverage
-htmlcov/
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# Optional: Lock files (se não quiser no repositório)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

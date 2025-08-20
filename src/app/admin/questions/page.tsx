@@ -14,18 +14,16 @@ import {
   XCircle,
   FileQuestion
 } from 'lucide-react'
-import { mockQuestions, mockSubjects } from '@/mocks/data'
-
 export default function AdminQuestionsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSubject, setSelectedSubject] = useState<string>('all')
-  const [questions] = useState(mockQuestions)
+  const [questions] = useState<any[]>([])
 
   const filteredQuestions = questions.filter(question => {
     const matchesSearch = question.statement.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          question.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         question.id.includes(searchTerm)
-    const matchesSubject = selectedSubject === 'all' || question.subject_id === selectedSubject
+                         question.id.toString().includes(searchTerm)
+    const matchesSubject = selectedSubject === 'all' || question.subject_id.toString() === selectedSubject
     return matchesSearch && matchesSubject
   })
 
@@ -67,7 +65,7 @@ export default function AdminQuestionsPage() {
         <div className="bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-gray-800">{mockSubjects.length}</p>
+              <p className="text-2xl font-bold text-gray-800">0</p>
               <p className="text-sm text-gray-600">Matérias</p>
             </div>
             <BookOpen className="w-10 h-10 text-green-600" />
@@ -120,11 +118,6 @@ export default function AdminQuestionsPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">Todas as Matérias</option>
-              {mockSubjects.map(subject => (
-                <option key={subject.id} value={subject.id}>
-                  {subject.name}
-                </option>
-              ))}
             </select>
           </div>
         </div>
@@ -158,11 +151,11 @@ export default function AdminQuestionsPage() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredQuestions.map((question) => {
-                const subject = mockSubjects.find(s => s.id === question.subject_id)
+                const subject = null
                 return (
                   <tr key={question.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      #{question.id.split('-')[1]}
+                      #{question.id}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
@@ -171,7 +164,7 @@ export default function AdminQuestionsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {subject?.name}
+                        -
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -199,7 +192,7 @@ export default function AdminQuestionsPage() {
                           <Edit2 className="w-5 h-5" />
                         </Link>
                         <button
-                          onClick={() => handleDelete(question.id)}
+                          onClick={() => handleDelete(question.id.toString())}
                           className="text-red-600 hover:text-red-900"
                           title="Excluir"
                         >

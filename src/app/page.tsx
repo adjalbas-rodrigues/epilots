@@ -233,9 +233,9 @@ export default function HomePage() {
           </div>
 
           {/* Access Cards */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="flex justify-center max-w-4xl mx-auto">
             {/* Student Card */}
-            <div className="group relative bg-gradient-to-br from-red-500 to-red-600 rounded-3xl p-1 hover:scale-105 transition-all duration-300">
+            <div className="group relative bg-gradient-to-br from-red-500 to-red-600 rounded-3xl p-1 hover:scale-105 transition-all duration-300 max-w-md">
               <div className="absolute inset-0 bg-gradient-to-br from-red-400 to-red-700 rounded-3xl blur-xl opacity-50 group-hover:opacity-70 transition-opacity" />
               <div className="relative bg-white rounded-3xl p-8">
                 <div className="flex items-center justify-between mb-6">
@@ -259,7 +259,7 @@ export default function HomePage() {
             </div>
 
             {/* Admin Card */}
-            <div className="group relative bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-1 hover:scale-105 transition-all duration-300">
+            {/* <div className="group relative bg-gradient-to-br from-green-500 to-green-600 rounded-3xl p-1 hover:scale-105 transition-all duration-300">
               <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-green-700 rounded-3xl blur-xl opacity-50 group-hover:opacity-70 transition-opacity" />
               <div className="relative bg-white rounded-3xl p-8">
                 <div className="flex items-center justify-between mb-6">
@@ -280,7 +280,7 @@ export default function HomePage() {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
@@ -378,12 +378,6 @@ export default function HomePage() {
               >
                 Começar Gratuitamente
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link 
-                href="/cms/auth/login"
-                className="px-8 py-4 bg-white/10 backdrop-blur-md text-white rounded-full hover:bg-white/20 transition-all border border-white/20 font-semibold text-lg"
-              >
-                Acesso Administrativo
               </Link>
             </div>
             

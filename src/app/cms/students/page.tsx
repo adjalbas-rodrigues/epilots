@@ -19,7 +19,6 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react'
-import { mockStudents } from '@/mocks/data'
 
 export default function CMSStudentsPage() {
   const router = useRouter()
@@ -39,7 +38,7 @@ export default function CMSStudentsPage() {
     router.push('/cms/auth/login')
   }
 
-  const filteredStudents = mockStudents.filter(student =>
+  const filteredStudents: any[] = [].filter((student: any) =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.email.toLowerCase().includes(searchTerm.toLowerCase())
   )

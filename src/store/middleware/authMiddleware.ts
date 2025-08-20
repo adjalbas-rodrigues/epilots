@@ -1,12 +1,12 @@
 import { Middleware } from '@reduxjs/toolkit'
 import apiClient from '@/lib/api'
 
-export const authMiddleware: Middleware = (store) => (next) => (action) => {
+export const authMiddleware: Middleware = (store) => (next) => (action: any) => {
   const result = next(action)
 
   // Sync token with apiClient when auth state changes
   if (action.type === 'auth/loginSuccess') {
-    const token = action.payload.token
+    const token = action.payload?.token
     if (token) {
       apiClient.setToken(token)
     }

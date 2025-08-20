@@ -11,18 +11,17 @@ import {
   CheckCircle,
   FileQuestion
 } from 'lucide-react'
-import { mockSubjects, mockQuestions } from '@/mocks/data'
 
 export default function AdminSubjectsPage() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [subjects] = useState(mockSubjects)
+  const [subjects] = useState<any[]>([])
 
   const filteredSubjects = subjects.filter(subject =>
     subject.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const getQuestionCount = (subjectId: string) => {
-    return mockQuestions.filter(q => q.subject_id === subjectId).length
+    return 0
   }
 
   const handleDelete = (subjectId: string) => {
@@ -80,7 +79,7 @@ export default function AdminSubjectsPage() {
         <div className="bg-white rounded-lg shadow-md p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-bold text-gray-800">{mockQuestions.length}</p>
+              <p className="text-2xl font-bold text-gray-800">0</p>
               <p className="text-sm text-gray-600">Total de Questões</p>
             </div>
             <FileQuestion className="w-10 h-10 text-purple-600" />
@@ -105,7 +104,7 @@ export default function AdminSubjectsPage() {
       {/* Subjects Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredSubjects.map((subject) => {
-          const questionCount = getQuestionCount(subject.id)
+          const questionCount = getQuestionCount(subject.id.toString())
           
           return (
             <div key={subject.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
@@ -137,7 +136,7 @@ export default function AdminSubjectsPage() {
                   <Edit2 className="w-5 h-5" />
                 </Link>
                 <button
-                  onClick={() => handleDelete(subject.id)}
+                  onClick={() => handleDelete(subject.id.toString())}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   title="Excluir"
                 >

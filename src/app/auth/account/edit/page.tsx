@@ -12,7 +12,6 @@ import {
   Hash,
   Key
 } from 'lucide-react'
-import { mockStudents } from '@/mocks/data'
 
 export default function EditAccountPage() {
   const router = useRouter()
@@ -39,12 +38,7 @@ export default function EditAccountPage() {
     }
 
     // Load student data (mock)
-    const student = mockStudents[0]
-    setProfileData({
-      name: student.name,
-      email: student.email,
-      nickname: student.nickname || '',
-    })
+    // const student = null - removed mock data
   }, [router])
 
   const validateProfileForm = () => {

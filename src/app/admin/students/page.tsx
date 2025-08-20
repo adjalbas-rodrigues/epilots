@@ -13,12 +13,11 @@ import {
   Unlock,
   Filter
 } from 'lucide-react'
-import { mockStudents } from '@/mocks/data'
 
 export default function AdminStudentsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'liberado' | 'bloqueado'>('all')
-  const [students] = useState(mockStudents)
+  const [students] = useState<any[]>([])
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -154,14 +153,14 @@ export default function AdminStudentsPage() {
                         <Edit2 className="w-5 h-5" />
                       </Link>
                       <button
-                        onClick={() => handleToggleStatus(student.id)}
+                        onClick={() => handleToggleStatus(student.id.toString())}
                         className={student.status === 'liberado' ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}
                         title={student.status === 'liberado' ? 'Bloquear' : 'Liberar'}
                       >
                         {student.status === 'liberado' ? <Lock className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
                       </button>
                       <button
-                        onClick={() => handleDelete(student.id)}
+                        onClick={() => handleDelete(student.id.toString())}
                         className="text-red-600 hover:text-red-900"
                         title="Excluir"
                       >

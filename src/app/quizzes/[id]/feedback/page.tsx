@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Breadcrumbs from '@/components/Breadcrumbs'
+import VdoCipherPlayerFinal from '@/components/VdoCipherPlayerFinal'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/useToast'
 import apiClient from '@/lib/api'
@@ -23,7 +24,8 @@ import {
   BookOpen,
   ChevronDown,
   ChevronUp,
-  Flag
+  Flag,
+  PlayCircle
 } from 'lucide-react'
 
 interface Choice {
@@ -33,13 +35,21 @@ interface Choice {
   is_correct: boolean
 }
 
-interface Question {
-  id: number
-  statement: string
-  selected_choice: Choice | null
-  correct_choice: Choice
-  marked: boolean
-  choices: Choice[]
+interface FeedbackItem {
+  question: string
+  selected_answer: string
+  correct_answer: string
+  is_correct: boolean
+  explanation: string
+  video?: {
+    id: number
+    name: string
+    description: string
+    videoId: string
+    thumbnail?: string
+    duration: number
+    teacherName: string
+  } | null
 }
 
 interface QuizFeedback {
@@ -47,25 +57,17 @@ interface QuizFeedback {
     id: number
     studentId: number
     subjectId: number
+    name?: string | null
     startedAt: string
     finishedAt: string
-    score: number
-    total_questions: number
-    correct_answers: number
+    score: string
     subject: {
       id: number
       name: string
       color: string | null
     }
   }
-  questions: Question[]
-  topics_performance: Array<{
-    topic_id: number
-    topic_name: string
-    total: number
-    correct: number
-    percentage: number
-  }>
+  feedback: FeedbackItem[]
 }
 
 export default function QuizFeedbackPage() {
@@ -102,12 +104,12 @@ export default function QuizFeedbackPage() {
     }
   }
 
-  const toggleQuestionExpanded = (questionId: number) => {
+  const toggleQuestionExpanded = (index: number) => {
     const newExpanded = new Set(expandedQuestions)
-    if (newExpanded.has(questionId)) {
-      newExpanded.delete(questionId)
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index)
     } else {
-      newExpanded.add(questionId)
+      newExpanded.add(index)
     }
     setExpandedQuestions(newExpanded)
   }
@@ -140,8 +142,10 @@ export default function QuizFeedbackPage() {
     )
   }
 
-  const { quiz, questions, topics_performance } = feedback
-  const percentage = (quiz.correct_answers / quiz.total_questions) * 100
+  const { quiz, feedback: feedbackItems } = feedback
+  const totalQuestions = feedbackItems.length
+  const correctAnswers = feedbackItems.filter(item => item.is_correct).length
+  const percentage = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0
   const duration = new Date(quiz.finishedAt).getTime() - new Date(quiz.startedAt).getTime()
   const minutes = Math.floor(duration / 60000)
   const seconds = Math.floor((duration % 60000) / 1000)
@@ -176,7 +180,7 @@ export default function QuizFeedbackPage() {
                   <Trophy className={`w-24 h-24 mx-auto ${percentage >= 70 ? 'text-yellow-500' : 'text-gray-400'}`} />
                 </div>
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                  Quiz Concluído!
+                  {quiz.name || `Quiz #${quizId}`} Concluído!
                 </h1>
                 <p className={`text-xl ${getPerformanceColor()}`}>
                   {getPerformanceMessage()}
@@ -207,7 +211,7 @@ export default function QuizFeedbackPage() {
                 
                 <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl">
                   <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-3" />
-                  <p className="text-3xl font-bold text-gray-800">{quiz.correct_answers}/{quiz.total_questions}</p>
+                  <p className="text-3xl font-bold text-gray-800">{correctAnswers}/{totalQuestions}</p>
                   <p className="text-gray-600 mt-1">Questões Corretas</p>
                 </div>
                 
@@ -222,7 +226,7 @@ export default function QuizFeedbackPage() {
               <div className="mb-8">
                 <div className="flex justify-between text-sm text-gray-600 mb-2">
                   <span>Desempenho</span>
-                  <span>{quiz.correct_answers} acertos de {quiz.total_questions} questões</span>
+                  <span>{correctAnswers} acertos de {totalQuestions} questões</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
                   <div 
@@ -264,65 +268,25 @@ export default function QuizFeedbackPage() {
               </div>
             </div>
 
-            {/* Topic Performance */}
-            {topics_performance && topics_performance.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 mb-8">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Desempenho por Tópico</h2>
-                
-                <div className="space-y-4">
-                  {topics_performance.map((topic) => (
-                    <div key={topic.topic_id} className="flex items-center gap-4">
-                      <div className="flex-1">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium text-gray-700">{topic.topic_name}</span>
-                          <span className="text-sm text-gray-500">
-                            {topic.correct}/{topic.total} questões
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-500 ${
-                              topic.percentage >= 80 ? 'bg-green-500' :
-                              topic.percentage >= 60 ? 'bg-yellow-500' :
-                              'bg-red-500'
-                            }`}
-                            style={{ width: `${topic.percentage}%` }}
-                          />
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span className={`text-lg font-bold ${
-                          topic.percentage >= 80 ? 'text-green-600' :
-                          topic.percentage >= 60 ? 'text-yellow-600' :
-                          'text-red-600'
-                        }`}>
-                          {topic.percentage.toFixed(0)}%
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Question Details */}
             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">Revisão das Questões</h2>
               
               <div className="space-y-4">
-                {questions.map((question, index) => {
-                  const isExpanded = expandedQuestions.has(question.id)
-                  const isCorrect = question.selected_choice?.is_correct || false
+                {feedbackItems.map((item, index) => {
+                  const isExpanded = expandedQuestions.has(index)
+                  const isCorrect = item.is_correct
                   
                   return (
                     <div 
-                      key={question.id} 
+                      key={index} 
                       className={`border-2 rounded-xl transition-all ${
                         isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'
                       }`}
                     >
                       <button
-                        onClick={() => toggleQuestionExpanded(question.id)}
+                        onClick={() => toggleQuestionExpanded(index)}
                         className="w-full p-4 text-left focus:outline-none"
                       >
                         <div className="flex items-start justify-between">
@@ -342,13 +306,15 @@ export default function QuizFeedbackPage() {
                                 <h3 className="font-semibold text-gray-800">
                                   Questão {index + 1}
                                 </h3>
-                                {question.marked && (
-                                  <Flag className="w-4 h-4 text-yellow-500" />
-                                )}
                               </div>
-                              <p className="text-gray-700 line-clamp-2">
-                                {question.statement}
-                              </p>
+                              <div 
+                                className={`text-gray-700 ${!isExpanded ? 'line-clamp-2' : ''}`}
+                                dangerouslySetInnerHTML={{ 
+                                  __html: item.question.includes('<') && item.question.includes('>') 
+                                    ? item.question 
+                                    : item.question.replace(/\n/g, '<br />').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
+                                }}
+                              />
                               <p className={`text-sm mt-2 font-medium ${
                                 isCorrect ? 'text-green-600' : 'text-red-600'
                               }`}>
@@ -370,48 +336,81 @@ export default function QuizFeedbackPage() {
                       {isExpanded && (
                         <div className="px-4 pb-4 pt-0">
                           <div className="ml-14 space-y-3">
-                            {question.choices.map((choice) => {
-                              const isSelected = question.selected_choice?.id === choice.id
-                              const isCorrectChoice = choice.is_correct
-                              
-                              return (
+                            <div className="space-y-2">
+                              {/* Full question statement when expanded */}
+                              {/* <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                                <div className="text-sm font-semibold text-gray-600 mb-2">Enunciado completo:</div>
                                 <div 
-                                  key={choice.id}
-                                  className={`p-3 rounded-lg border ${
-                                    isCorrectChoice
-                                      ? 'border-green-400 bg-green-100'
-                                      : isSelected
-                                      ? 'border-red-400 bg-red-100'
-                                      : 'border-gray-300 bg-white'
-                                  }`}
-                                >
-                                  <div className="flex items-start gap-3">
-                                    <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                                      isCorrectChoice
-                                        ? 'bg-green-500 text-white'
-                                        : isSelected
-                                        ? 'bg-red-500 text-white'
-                                        : 'bg-gray-300 text-gray-700'
-                                    }`}>
-                                      {choice.label}
-                                    </span>
-                                    <div className="flex-1">
-                                      <p className="text-gray-700">{choice.description}</p>
-                                      {isCorrectChoice && (
-                                        <p className="text-sm text-green-600 mt-1 font-medium">
-                                          Resposta correta
-                                        </p>
-                                      )}
-                                      {isSelected && !isCorrectChoice && (
-                                        <p className="text-sm text-red-600 mt-1 font-medium">
-                                          Sua resposta
-                                        </p>
-                                      )}
-                                    </div>
+                                  className="text-gray-700"
+                                  dangerouslySetInnerHTML={{ 
+                                    __html: item.question.includes('<') && item.question.includes('>') 
+                                      ? item.question 
+                                      : item.question.replace(/\n/g, '<br />').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
+                                  }}
+                                />
+                              </div> */}
+                              
+                              <div className="text-sm font-semibold text-gray-600 mb-2">Sua resposta:</div>
+                              <div className={`p-3 rounded-lg border ${
+                                isCorrect ? 'border-green-400 bg-green-100' : 'border-red-400 bg-red-100'
+                              }`}>
+                                <div 
+                                  dangerouslySetInnerHTML={{ 
+                                    __html: item.selected_answer.includes('<') && item.selected_answer.includes('>') 
+                                      ? item.selected_answer 
+                                      : item.selected_answer.replace(/\n/g, '<br />').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
+                                  }}
+                                />
+                              </div>
+                              
+                              {!isCorrect && (
+                                <>
+                                  <div className="text-sm font-semibold text-gray-600 mb-2 mt-4">Resposta correta:</div>
+                                  <div className="p-3 rounded-lg border border-green-400 bg-green-100">
+                                    <div 
+                                      dangerouslySetInnerHTML={{ 
+                                        __html: item.correct_answer.includes('<') && item.correct_answer.includes('>') 
+                                          ? item.correct_answer 
+                                          : item.correct_answer.replace(/\n/g, '<br />').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
+                                      }}
+                                    />
                                   </div>
+                                </>
+                              )}
+                              
+                              {item.explanation && (
+                                <>
+                                  <div className="text-sm font-semibold text-gray-600 mb-2 mt-4">Explicação:</div>
+                                  <div className="p-3 rounded-lg border border-blue-200 bg-blue-50">
+                                    <div 
+                                      className="text-gray-700"
+                                      dangerouslySetInnerHTML={{ 
+                                        __html: item.explanation.includes('<') && item.explanation.includes('>') 
+                                          ? item.explanation 
+                                          : item.explanation.replace(/\n/g, '<br />').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
+                                      }}
+                                    />
+                                  </div>
+                                </>
+                              )}
+                              
+                              {item.video && (
+                                <div className="mt-6">
+                                  <div className="mb-2 flex items-center gap-2">
+                                    <PlayCircle className="w-5 h-5 text-purple-600" />
+                                    <p className="text-sm font-semibold text-purple-600">Vídeo Explicativo Disponível</p>
+                                  </div>
+                                  <VdoCipherPlayerFinal
+                                    videoId={item.video.videoId}
+                                    title={item.video.name}
+                                    description={item.video.description}
+                                    teacherName={item.video.teacherName}
+                                    duration={item.video.duration}
+                                    thumbnail={item.video.thumbnail}
+                                  />
                                 </div>
-                              )
-                            })}
+                              )}
+                            </div>
                           </div>
                         </div>
                       )}

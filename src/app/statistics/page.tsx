@@ -28,18 +28,21 @@ import {
 } from 'lucide-react'
 
 interface Statistics {
-  total_questions: number
-  answered_questions: number
-  correct_answers: number
-  wrong_answers: number
-  accuracy_rate: number
-  subjects_performance: Array<{
+  overview: {
+    total_quizzes: number
+    total_questions: number
+    average_score: number
+  }
+  subject_performance: Array<{
     subject_id: number
     subject_name: string
-    total_questions: number
-    answered_questions: number
-    correct_answers: number
-    accuracy_rate: number
+    subject_color: string
+    quiz_count: number
+    average_score: number
+  }>
+  recent_activity: Array<{
+    date: string
+    quiz_count: number
   }>
 }
 
@@ -105,22 +108,24 @@ export default function StatisticsPage() {
     )
   }
 
-  const totalQuestions = statistics.total_questions
-  const answeredQuestions = statistics.answered_questions
-  const correctAnswers = statistics.correct_answers
-  const wrongAnswers = statistics.wrong_answers
-  const accuracyRate = statistics.accuracy_rate.toFixed(1)
-  const remainingQuestions = totalQuestions - answeredQuestions
+  const totalQuizzes = statistics.overview?.total_quizzes || 0
+  const totalQuestions = statistics.overview?.total_questions || 0
+  const averageScore = Number(statistics.overview?.average_score) || 0
+  const accuracyRate = averageScore.toFixed(1)
+  
+  // Calculate derived statistics for display cards
+  const correctAnswers = Math.round((averageScore / 100) * totalQuestions)
+  const wrongAnswers = totalQuestions - correctAnswers
 
-  const performanceBySubject = statistics.subjects_performance
+  const performanceBySubject = (statistics.subject_performance || [])
     .map(subject => ({
       name: subject.subject_name,
-      percentage: subject.accuracy_rate,
-      correct: subject.correct_answers,
-      total: subject.answered_questions,
-      color: subject.accuracy_rate >= 80 
+      percentage: subject.average_score || 0,
+      correct: Math.round(((subject.average_score || 0) / 100) * (subject.quiz_count || 0) * 10), // Estimate based on average 10 questions per quiz
+      total: (subject.quiz_count || 0) * 10, // Estimate based on average 10 questions per quiz
+      color: (subject.average_score || 0) >= 80 
         ? 'from-green-400 to-green-600' 
-        : subject.accuracy_rate >= 60 
+        : (subject.average_score || 0) >= 60 
         ? 'from-yellow-400 to-yellow-600'
         : 'from-red-400 to-red-600'
     }))
@@ -162,13 +167,13 @@ export default function StatisticsPage() {
                   <Sparkles className="w-4 h-4 opacity-50" />
                 </div>
                 <div>
-                  <p className="text-4xl font-bold mb-1">{answeredQuestions}</p>
-                  <p className="text-blue-100 text-xs uppercase tracking-wider">Perguntas Respondidas</p>
+                  <p className="text-4xl font-bold mb-1">{totalQuizzes}</p>
+                  <p className="text-blue-100 text-xs uppercase tracking-wider">Quizzes Completados</p>
                 </div>
                 <div className="mt-3 pt-3 border-t border-white/20">
                   <div className="flex items-center gap-2 text-xs">
                     <TrendingUp className="w-3 h-3" />
-                    <span>{((answeredQuestions / totalQuestions) * 100).toFixed(1)}% do total</span>
+                    <span>{totalQuestions} perguntas respondidas</span>
                   </div>
                 </div>
               </div>
@@ -249,17 +254,17 @@ export default function StatisticsPage() {
                 <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg p-2">
                   <BookOpen className="w-4 h-4 text-white" />
                 </div>
-                <h3 className="text-sm font-semibold text-gray-800">Questões Restantes</h3>
+                <h3 className="text-sm font-semibold text-gray-800">Total de Questões</h3>
               </div>
               <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-bold text-blue-600">{remainingQuestions}</p>
-                <span className="text-gray-500 text-sm">de {totalQuestions}</span>
+                <p className="text-3xl font-bold text-blue-600">{totalQuestions}</p>
+                <span className="text-gray-500 text-sm">perguntas totais</span>
               </div>
               <div className="mt-3">
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full transition-all duration-1000"
-                    style={{ width: isAnimated ? `${(remainingQuestions / totalQuestions) * 100}%` : '0%' }}
+                    style={{ width: isAnimated ? '100%' : '0%' }}
                   />
                 </div>
               </div>

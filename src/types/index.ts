@@ -4,7 +4,7 @@ export type QuizStatus = 'finished' | 'inProgress'
 export type FeedbackBehaviour = 'after_each' | 'at_end'
 
 export interface User {
-  id: string
+  id: number
   role: UserRole
   name: string
   email: string
@@ -16,7 +16,7 @@ export interface User {
 }
 
 export interface Student {
-  id: string
+  id: number
   name: string
   email: string
   password?: string
@@ -31,17 +31,44 @@ export interface Student {
 }
 
 export interface Subject {
-  id: string
+  id: number
   name: string
-  super_quest: boolean
-  created: Date
-  modified: Date
+  short_name: string | null
+  color: string | null
+  text_color: string | null
+  super_quest?: boolean
+  topics?: Topic[]
 }
 
+
+
+export interface Matter {
+  id: number
+  name: string
+  topics?: Topic[]
+}
+
+export interface QuestionBase {
+  id: number
+  name: string
+  description?: string
+}
+
+export interface Topic {
+  id: number
+  name: string
+  subject_id?: string
+  matterId?: string
+  // matter?: Matter
+}
+
+
 export interface Question {
-  id: string
-  subject_id: string
+  id: number
+  subject_id: number
   subject?: Subject
+  baseId?: string
+  base?: QuestionBase
   statement: string
   title?: string
   bibliography?: string
@@ -51,8 +78,8 @@ export interface Question {
 }
 
 export interface Answer {
-  id: string
-  question_id: string
+  id: number
+  question_id: number
   description: string
   isCorrect: boolean
   created: Date
@@ -60,9 +87,9 @@ export interface Answer {
 }
 
 export interface Quiz {
-  id: string
+  id: number
   name: string
-  student_id: string
+  student_id: number
   student?: Student
   status: QuizStatus
   feedback_behaviour: FeedbackBehaviour
@@ -73,8 +100,8 @@ export interface Quiz {
 }
 
 export interface QuizQuestion {
-  question_id: string
-  quiz_id: string
+  question_id: number
+  quiz_id: number
   answer_id?: string
   position: number
   question?: Question
@@ -82,8 +109,8 @@ export interface QuizQuestion {
 }
 
 export interface QuizFavorite {
-  student_id: string
-  question_id: string
+  student_id: number
+  question_id: number
   mark: boolean
   flag: boolean
   observacao?: string
@@ -92,13 +119,13 @@ export interface QuizFavorite {
 }
 
 export interface StudentSubject {
-  student_id: string
-  subject_id: string
+  student_id: number
+  subject_id: number
   inedited_questions: string
 }
 
 export interface QuizType {
-  id: string
+  id: number
   name: string
   description: string
   value: string

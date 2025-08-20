@@ -12,12 +12,11 @@ import {
   Mail,
   Calendar
 } from 'lucide-react'
-import { mockUsers } from '@/mocks/data'
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('all')
-  const [users] = useState(mockUsers)
+  const [users] = useState<any[]>([])
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -204,7 +203,7 @@ export default function AdminUsersPage() {
                           <Edit2 className="w-5 h-5" />
                         </Link>
                         <button
-                          onClick={() => handleDelete(user.id)}
+                          onClick={() => handleDelete(user.id.toString())}
                           className="text-red-600 hover:text-red-900"
                           title="Excluir"
                           disabled={user.role === 'admin' && users.filter(u => u.role === 'admin').length === 1}

@@ -113,7 +113,7 @@ export default function CreateQuizPage() {
   const [searchTermBase, setSearchTermBase] = useState('')
   const [onlyWrong, setOnlyWrong] = useState(false)
   const [onlyMarked, setOnlyMarked] = useState(false)
-  const [quizMode, setQuizMode] = useState<'complete' | 'inedited' | 'review' | 'superquest'>('complete')
+  const [quizMode, setQuizMode] = useState<'complete' | 'inedited' | 'review' | 'superquest' >('complete')
 
   // Question counts
   const [totalQuestions, setTotalQuestions] = useState(0)
@@ -1367,7 +1367,7 @@ export default function CreateQuizPage() {
                     </div>
                   )}
 
-                  {activeTab === 'review_old' && (
+                  {false && (
                     <div className="space-y-6 animate-fade-in">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-6">

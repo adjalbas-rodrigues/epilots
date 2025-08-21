@@ -117,7 +117,7 @@ export default function QuizFeedbackPage() {
   if (loading) {
     return (
       <>
-        <Navbar isAuthenticated={true} />
+        <Navbar isAuthenticated={true} userName={user?.name} />
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin text-red-600 mx-auto mb-4" />
@@ -131,7 +131,7 @@ export default function QuizFeedbackPage() {
   if (!feedback) {
     return (
       <>
-        <Navbar isAuthenticated={true} />
+        <Navbar isAuthenticated={true} userName={user?.name} />
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
@@ -166,7 +166,7 @@ export default function QuizFeedbackPage() {
 
   return (
     <>
-      <Navbar isAuthenticated={true} />
+      <Navbar isAuthenticated={true} userName={user?.name} />
       <Breadcrumbs />
       
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">

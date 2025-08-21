@@ -53,7 +53,9 @@ import {
   FolderTree,
   Database,
   ListTree,
-  Package
+  Package,
+  Award,
+  Trophy
 } from 'lucide-react'
 
 // interface Topic {
@@ -84,7 +86,7 @@ export default function CreateQuizPage() {
   const router = useRouter()
   const { user } = useAuth()
   const { showToast } = useToast()
-  const [activeTab, setActiveTab] = useState<'subjects' | 'matters' | 'options' | 'base' | 'statement' | 'review'>('options')
+  const [activeTab, setActiveTab] = useState<'quizmode' | 'subjects' | 'matters' | 'options' | 'base' | 'statement'>('quizmode')
   const [searchTerm, setSearchTerm] = useState('')
   const [searchTermMatter, setSearchTermMatter] = useState('')
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([])
@@ -111,6 +113,7 @@ export default function CreateQuizPage() {
   const [searchTermBase, setSearchTermBase] = useState('')
   const [onlyWrong, setOnlyWrong] = useState(false)
   const [onlyMarked, setOnlyMarked] = useState(false)
+  const [quizMode, setQuizMode] = useState<'complete' | 'inedited' | 'review' | 'superquest'>('complete')
 
   // Question counts
   const [totalQuestions, setTotalQuestions] = useState(0)
@@ -128,6 +131,31 @@ export default function CreateQuizPage() {
     fetchSubjectsAndMatters()
     fetchReviewStats()
   }, [user, router])
+
+  // Handle SuperQuest mode
+  useEffect(() => {
+    if (quizMode === 'superquest') {
+      setQuestionCount(70)
+      setSelectedBaseIds([3]) // baseId = 3 for simulados
+      // Clear other filters
+      setSelectedSubjectIds([])
+      setSelectedMatterIds([])
+      setSelectedTopicIds([])
+      setSelectedTopicIdsByMatter([])
+      setStatementText('')
+    } else if (quizMode === 'review') {
+      setOnlyWrong(true)
+      setOnlyMarked(false)
+    } else if (quizMode === 'inedited') {
+      setOnlyWrong(false)
+      setOnlyMarked(false)
+      // Will be handled in the backend
+    } else {
+      // Complete mode
+      setOnlyWrong(false)
+      setOnlyMarked(false)
+    }
+  }, [quizMode])
 
   // Update question count when filters change
   useEffect(() => {
@@ -365,17 +393,41 @@ export default function CreateQuizPage() {
     try {
       setCreating(true)
       
-      // Combinar todos os topicIds selecionados de ambas as abas
-      const allSelectedTopicIds = [...new Set([...selectedTopicIds, ...selectedTopicIdsByMatter])]
+      // Configurar parâmetros baseados no quizMode
+      let finalTopicIds = [...new Set([...selectedTopicIds, ...selectedTopicIdsByMatter])]
+      let finalBaseIds = selectedBaseIds.length > 0 ? selectedBaseIds : undefined
+      let finalQuestionCount = questionCount
+      let finalOnlyWrong = onlyWrong
+      let finalOnlyMarked = onlyMarked
+      let inedited = false
+      
+      if (quizMode === 'superquest') {
+        // SuperQuest: 70 questões, baseId=3, sem outros filtros
+        finalTopicIds = []
+        finalBaseIds = [3]
+        finalQuestionCount = 70
+        finalOnlyWrong = false
+        finalOnlyMarked = false
+      } else if (quizMode === 'review') {
+        // Quest de Revisão: apenas questões erradas
+        finalOnlyWrong = true
+        finalOnlyMarked = false
+      } else if (quizMode === 'inedited') {
+        // Quest Inédito: apenas questões não respondidas
+        inedited = true
+        finalOnlyWrong = false
+        finalOnlyMarked = false
+      }
       
       const response = await apiClient.createQuiz(
-        questionCount,
-        allSelectedTopicIds, // Enviar todos os topic IDs combinados
-        selectedBaseIds.length > 0 ? selectedBaseIds : undefined,
+        finalQuestionCount,
+        finalTopicIds,
+        finalBaseIds,
         feedbackMode,
-        onlyWrong,
-        onlyMarked,
-        quizName || undefined
+        finalOnlyWrong,
+        finalOnlyMarked,
+        quizName || undefined,
+        inedited // Adicionar parâmetro para questões inéditas
       )
       
       showToast('Quiz criado com sucesso!', 'success')
@@ -435,7 +487,7 @@ export default function CreateQuizPage() {
   if (loading) {
     return (
       <>
-        <Navbar isAuthenticated={true} />
+        <Navbar isAuthenticated={true} userName={user?.name} />
         <Breadcrumbs />
         <div className="min-h-screen bg-gray-50">
           <div className="container mx-auto px-4 py-6">
@@ -450,7 +502,7 @@ export default function CreateQuizPage() {
 
   return (
     <>
-      <Navbar isAuthenticated={true} />
+      <Navbar isAuthenticated={true} userName={user?.name} />
       <Breadcrumbs />
       
       <div className="min-h-screen bg-gray-50">
@@ -512,12 +564,26 @@ export default function CreateQuizPage() {
                 <div className="border-b border-gray-200">
                   <nav className="flex -mb-px overflow-x-auto">
                     <button
+                      onClick={() => setActiveTab('quizmode')}
+                      className={`px-6 py-4 text-sm font-medium border-b-2 transition-all duration-200 whitespace-nowrap ${
+                        activeTab === 'quizmode'
+                          ? 'text-indigo-600 border-indigo-600 bg-indigo-50/50'
+                          : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Award className="w-4 h-4" />
+                        Tipo de Quest
+                      </div>
+                    </button>
+                    <button
                       onClick={() => setActiveTab('subjects')}
                       className={`px-6 py-4 text-sm font-medium border-b-2 transition-all duration-200 whitespace-nowrap ${
                         activeTab === 'subjects'
                           ? 'text-blue-600 border-blue-600 bg-blue-50/50'
                           : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50'
                       }`}
+                      disabled={quizMode === 'superquest'}
                     >
                       <div className="flex items-center gap-2">
                         <Library className="w-4 h-4" />
@@ -531,6 +597,7 @@ export default function CreateQuizPage() {
                           ? 'text-purple-600 border-purple-600 bg-purple-50/50'
                           : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50'
                       }`}
+                      disabled={quizMode === 'superquest'}
                     >
                       <div className="flex items-center gap-2">
                         <FolderTree className="w-4 h-4" />
@@ -544,6 +611,7 @@ export default function CreateQuizPage() {
                           ? 'text-red-600 border-red-600 bg-red-50/50'
                           : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50'
                       }`}
+                      disabled={quizMode === 'superquest'}
                     >
                       <div className="flex items-center gap-2">
                         <Settings className="w-4 h-4" />
@@ -557,6 +625,7 @@ export default function CreateQuizPage() {
                           ? 'text-green-600 border-green-600 bg-green-50/50'
                           : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50'
                       }`}
+                      disabled={quizMode === 'superquest'}
                     >
                       <div className="flex items-center gap-2">
                         <Database className="w-4 h-4" />
@@ -570,29 +639,168 @@ export default function CreateQuizPage() {
                           ? 'text-orange-600 border-orange-600 bg-orange-50/50'
                           : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50'
                       }`}
+                      disabled={quizMode === 'superquest'}
                     >
                       <div className="flex items-center gap-2">
                         <MessageSquare className="w-4 h-4" />
                         Enunciado
                       </div>
                     </button>
-                    <button
-                      onClick={() => setActiveTab('review')}
-                      className={`px-6 py-4 text-sm font-medium border-b-2 transition-all duration-200 whitespace-nowrap ${
-                        activeTab === 'review'
-                          ? 'text-indigo-600 border-indigo-600 bg-indigo-50/50'
-                          : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Brain className="w-4 h-4" />
-                        Revisão
-                      </div>
-                    </button>
                   </nav>
                 </div>
 
                 <div className="p-6">
+                  {activeTab === 'quizmode' && (
+                    <div className="space-y-6 animate-fade-in">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-6">
+                          <Award className="w-5 h-5 text-indigo-500" />
+                          Tipos de Quest
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-6">
+                          Escolha o tipo de Quest que deseja realizar
+                        </p>
+
+                        {/* Quest Completo */}
+                        <div className={`mb-4 p-6 rounded-xl border-2 transition-all cursor-pointer ${
+                          quizMode === 'complete' 
+                            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-300 shadow-md' 
+                            : 'bg-white border-gray-200 hover:border-green-200 hover:shadow-sm'
+                        }`}
+                          onClick={() => setQuizMode('complete')}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className={`p-3 rounded-xl ${
+                              quizMode === 'complete'
+                                ? 'bg-gradient-to-br from-green-500 to-green-600 shadow-lg'
+                                : 'bg-gray-100'
+                            }`}>
+                              <CheckCircle2 className={`w-6 h-6 ${
+                                quizMode === 'complete' ? 'text-white' : 'text-gray-600'
+                              }`} />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className={`font-semibold text-lg mb-2 ${
+                                quizMode === 'complete' ? 'text-green-900' : 'text-gray-800'
+                              }`}>
+                                Quest Completo
+                              </h4>
+                              <p className={`text-sm ${
+                                quizMode === 'complete' ? 'text-green-700' : 'text-gray-600'
+                              }`}>
+                                Todas as questões disponíveis
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Quest Inédito */}
+                        <div className={`mb-4 p-6 rounded-xl border-2 transition-all cursor-pointer ${
+                          quizMode === 'inedited' 
+                            ? 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-300 shadow-md' 
+                            : 'bg-white border-gray-200 hover:border-blue-200 hover:shadow-sm'
+                        }`}
+                          onClick={() => setQuizMode('inedited')}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className={`p-3 rounded-xl ${
+                              quizMode === 'inedited'
+                                ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg'
+                                : 'bg-gray-100'
+                            }`}>
+                              <CircleDot className={`w-6 h-6 ${
+                                quizMode === 'inedited' ? 'text-white' : 'text-gray-600'
+                              }`} />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className={`font-semibold text-lg mb-2 ${
+                                quizMode === 'inedited' ? 'text-blue-900' : 'text-gray-800'
+                              }`}>
+                                Quest Inédito
+                              </h4>
+                              <p className={`text-sm ${
+                                quizMode === 'inedited' ? 'text-blue-700' : 'text-gray-600'
+                              }`}>
+                                Apenas questões não respondidas
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Quest de Revisão */}
+                        <div className={`mb-4 p-6 rounded-xl border-2 transition-all cursor-pointer ${
+                          quizMode === 'review' 
+                            ? 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-300 shadow-md' 
+                            : 'bg-white border-gray-200 hover:border-orange-200 hover:shadow-sm'
+                        }`}
+                          onClick={() => setQuizMode('review')}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className={`p-3 rounded-xl ${
+                              quizMode === 'review'
+                                ? 'bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg'
+                                : 'bg-gray-100'
+                            }`}>
+                              <XCircle className={`w-6 h-6 ${
+                                quizMode === 'review' ? 'text-white' : 'text-gray-600'
+                              }`} />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className={`font-semibold text-lg mb-2 ${
+                                quizMode === 'review' ? 'text-orange-900' : 'text-gray-800'
+                              }`}>
+                                Quest de Revisão
+                              </h4>
+                              <p className={`text-sm ${
+                                quizMode === 'review' ? 'text-orange-700' : 'text-gray-600'
+                              }`}>
+                                Questões que você errou ({wrongQuestionsCount} disponíveis)
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* SuperQuest */}
+                        <div className={`mb-4 p-6 rounded-xl border-2 transition-all cursor-pointer ${
+                          quizMode === 'superquest' 
+                            ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-300 shadow-md' 
+                            : 'bg-white border-gray-200 hover:border-purple-200 hover:shadow-sm'
+                        }`}
+                          onClick={() => setQuizMode('superquest')}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className={`p-3 rounded-xl ${
+                              quizMode === 'superquest'
+                                ? 'bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg'
+                                : 'bg-gray-100'
+                            }`}>
+                              <Trophy className={`w-6 h-6 ${
+                                quizMode === 'superquest' ? 'text-white' : 'text-gray-600'
+                              }`} />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className={`font-semibold text-lg mb-2 ${
+                                quizMode === 'superquest' ? 'text-purple-900' : 'text-gray-800'
+                              }`}>
+                                SuperQuest
+                              </h4>
+                              <p className={`text-sm ${
+                                quizMode === 'superquest' ? 'text-purple-700' : 'text-gray-600'
+                              }`}>
+                                70 questões de todo o conteúdo
+                              </p>
+                              {quizMode === 'superquest' && (
+                                <p className="text-xs text-purple-600 mt-2">
+                                  ⚠️ SuperQuest desabilita outros filtros
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {activeTab === 'subjects' && (
                     <div className="animate-fade-in">
                       <div className="flex items-center justify-between mb-6">
@@ -1159,7 +1367,7 @@ export default function CreateQuizPage() {
                     </div>
                   )}
 
-                  {activeTab === 'review' && (
+                  {activeTab === 'review_old' && (
                     <div className="space-y-6 animate-fade-in">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-6">

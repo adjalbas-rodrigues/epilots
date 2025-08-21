@@ -122,7 +122,7 @@ export default function QuizzesPage() {
   if (loading) {
     return (
       <>
-        <Navbar isAuthenticated={true} />
+        <Navbar isAuthenticated={true} userName={user?.name} />
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin text-red-600 mx-auto mb-4" />
@@ -135,7 +135,7 @@ export default function QuizzesPage() {
 
   return (
     <>
-      <Navbar isAuthenticated={true} />
+      <Navbar isAuthenticated={true} userName={user?.name} />
       <Breadcrumbs />
       
       <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-gray-50">
@@ -181,7 +181,7 @@ export default function QuizzesPage() {
               <div>
                 <p className="text-purple-100 text-sm">Taxa de Acerto</p>
                 <p className="text-3xl font-bold mt-1">
-                  {statistics?.accuracyRate || 0}%
+                  {statistics?.overview?.average_score || 0}%
                 </p>
               </div>
               <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
@@ -193,9 +193,9 @@ export default function QuizzesPage() {
           <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-orange-100 text-sm">Questões Respondidas</p>
+                <p className="text-orange-100 text-sm">Questões Inéditas</p>
                 <p className="text-3xl font-bold mt-1">
-                  {statistics?.totalQuestions || 0}
+                  {statistics?.overview?.inedited_questions || 0}
                 </p>
               </div>
               <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">

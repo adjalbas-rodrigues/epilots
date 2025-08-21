@@ -156,11 +156,12 @@ class ApiClient {
     feedbackMode: 'immediate' | 'end' = 'immediate',
     onlyWrong: boolean = false,
     onlyMarked: boolean = false,
-    name?: string
+    name?: string,
+    onlyInedited: boolean = false
   ) {
     return this.request<{ quizId: number; questionCount: number }>('/quizzes', {
       method: 'POST',
-      body: JSON.stringify({ questionCount, topicIds, baseIds, feedbackMode, onlyWrong, onlyMarked, name }),
+      body: JSON.stringify({ questionCount, topicIds, baseIds, feedbackMode, onlyWrong, onlyMarked, name, onlyInedited }),
     });
   }
 

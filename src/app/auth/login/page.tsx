@@ -36,7 +36,7 @@ export default function StudentLoginPage() {
     
     // Redirect if already authenticated
     if (isAuthenticated && !isLoading) {
-      router.push('/quizzes')
+      router.push('/auth/account')
     }
   }, [isAuthenticated, isLoading, router])
 
@@ -188,17 +188,17 @@ export default function StudentLoginPage() {
             </form>
 
             {/* Divider */}
-            <div className="relative my-8">
+            {/* <div className="relative my-8">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-4 bg-gradient-to-br from-gray-50 to-white text-gray-500">Novo por aqui?</span>
               </div>
-            </div>
+            </div> */}
 
             {/* Sign Up Link */}
-            <div className="text-center">
+            {/* <div className="text-center">
               <p className="text-gray-600 mb-4">Ainda não tem uma conta?</p>
               <Link 
                 href="/auth/register"
@@ -207,17 +207,17 @@ export default function StudentLoginPage() {
                 Criar conta gratuita
                 <Sparkles className="w-5 h-5" />
               </Link>
-            </div>
+            </div> */}
 
             {/* Test Credentials */}
-            <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
+            {/* <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
               <p className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
                 <Shield className="w-4 h-4" />
                 Credenciais de teste:
               </p>
               <p className="text-sm text-blue-700">Email: joao@example.com</p>
               <p className="text-sm text-blue-700">Senha: 123456</p>
-            </div>
+            </div> */}
           </div>
         </div>
 

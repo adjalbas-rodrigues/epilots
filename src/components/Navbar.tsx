@@ -162,7 +162,7 @@ export default function Navbar({ isAuthenticated = false, userName = 'Aluno' }: 
                   </button>
 
                   {/* Notifications */}
-                  <div className="relative">
+                  {/* <div className="relative">
                     <button 
                       onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                       className="relative flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-all backdrop-blur-sm border border-white/10 hover:border-white/20 group"
@@ -174,7 +174,7 @@ export default function Navbar({ isAuthenticated = false, userName = 'Aluno' }: 
                       </span>
                     </button>
 
-                    {/* Notifications Dropdown */}
+            
                     {isNotificationOpen && (
                       <div className="absolute right-0 mt-3 w-80 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 overflow-hidden animate-in slide-in-from-top-5">
                         <div className="p-4 border-b border-gray-100 bg-red-50">
@@ -207,7 +207,7 @@ export default function Navbar({ isAuthenticated = false, userName = 'Aluno' }: 
                         </div>
                       </div>
                     )}
-                  </div>
+                  </div> */}
 
                   {/* Profile Menu */}
                   <div className="relative">

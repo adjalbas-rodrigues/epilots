@@ -181,7 +181,7 @@ export default function QuizzesPage() {
               <div>
                 <p className="text-purple-100 text-sm">Taxa de Acerto</p>
                 <p className="text-3xl font-bold mt-1">
-                  {statistics?.overview?.average_score || 0}%
+                  {typeof statistics?.overview?.average_score === 'number' ? statistics.overview.average_score.toFixed(1) : '0.0'}%
                 </p>
               </div>
               <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">

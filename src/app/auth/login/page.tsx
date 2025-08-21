@@ -151,7 +151,7 @@ export default function StudentLoginPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
+              {/* <div className="flex items-center justify-between">
                 <label className="flex items-center">
                   <input type="checkbox" className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
                   <span className="ml-2 text-sm text-gray-600">Lembrar de mim</span>
@@ -162,7 +162,7 @@ export default function StudentLoginPage() {
                 >
                   Esqueceu a senha?
                 </Link>
-              </div>
+              </div> */}
 
               <button
                 type="submit"
@@ -257,7 +257,7 @@ export default function StudentLoginPage() {
                   <BookOpen className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">6.000+ Questões</h3>
+                  <h3 className="font-semibold mb-1">21.000+ Questões</h3>
                   <p className="text-sm text-white/70">Banco atualizado mensalmente</p>
                 </div>
               </div>
@@ -291,8 +291,8 @@ export default function StudentLoginPage() {
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-full"></div>
                 <div className="text-left">
-                  <p className="font-semibold text-sm">João Silva</p>
-                  <p className="text-xs text-white/70">Aprovado em 2024</p>
+                  <p className="font-semibold text-sm">Cambreuvas</p>
+                  <p className="text-xs text-white/70">Aprovado em 2026</p>
                 </div>
               </div>
             </div>

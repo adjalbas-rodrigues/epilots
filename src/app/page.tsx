@@ -10,7 +10,6 @@ import {
   BarChart3, 
   LogIn, 
   Target, 
-  Trophy, 
   Brain, 
   Clock,
   Shield,
@@ -85,7 +84,7 @@ export default function HomePage() {
               <div className="text-center group">
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all hover:scale-105">
                   <Shield className="w-8 h-8 text-red-400 mx-auto mb-3" />
-                  <p className="text-3xl font-bold text-white mb-1">6k+</p>
+                  <p className="text-3xl font-bold text-white mb-1">21k+</p>
                   <p className="text-white/60 text-sm">Questões Atualizadas</p>
                 </div>
               </div>
@@ -148,7 +147,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-4">Banco de Questões Inteligente</h3>
                 <p className="text-gray-600 mb-6">
-                  Mais de 6.000 questões organizadas por assunto, com filtros avançados e questões inéditas personalizadas.
+                  Mais de 21.000 questões organizadas por assunto, com filtros avançados e questões inéditas personalizadas.
                 </p>
                 <ul className="space-y-2">
                   <li className="flex items-center gap-2 text-gray-700">
@@ -298,19 +297,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              <div className="text-center group">
-                <div className="relative inline-block mb-4">
-                  <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-600 rounded-full blur-2xl opacity-20 group-hover:opacity-30 transition-opacity" />
-                  <div className="relative bg-gradient-to-br from-red-50 to-red-100 w-24 h-24 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Trophy className="w-12 h-12 text-red-600" />
-                  </div>
-                </div>
-                <h3 className="text-5xl font-bold text-gray-800 mb-2">98%</h3>
-                <p className="text-gray-600 font-semibold">Taxa de Aprovação</p>
-                <p className="text-sm text-gray-500 mt-1">Nos últimos 2 anos</p>
-              </div>
-
+            <div className="grid md:grid-cols-3 gap-8">
               <div className="text-center group">
                 <div className="relative inline-block mb-4">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full blur-2xl opacity-20 group-hover:opacity-30 transition-opacity" />
@@ -318,7 +305,7 @@ export default function HomePage() {
                     <BookOpen className="w-12 h-12 text-blue-600" />
                   </div>
                 </div>
-                <h3 className="text-5xl font-bold text-gray-800 mb-2">6k+</h3>
+                <h3 className="text-5xl font-bold text-gray-800 mb-2">21k+</h3>
                 <p className="text-gray-600 font-semibold">Questões Atualizadas</p>
                 <p className="text-sm text-gray-500 mt-1">Revisadas mensalmente</p>
               </div>

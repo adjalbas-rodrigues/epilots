@@ -142,7 +142,7 @@ export default function StudentDashboard() {
           </div>
 
           {/* Stats Cards - Same style as quizzes page */}
-          <div className="grid md:grid-cols-5 gap-6 mb-8">
+          <div className="grid md:grid-cols-4 gap-6 mb-8">
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
               <div className="flex items-center justify-between">
                 <div>
@@ -155,23 +155,11 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-cyan-100 text-sm">Questões Inéditas</p>
-                  <p className="text-3xl font-bold mt-1">{statistics?.ineditedQuestions || 0}</p>
-                </div>
-                <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
-                  <Sparkles className="w-6 h-6" />
-                </div>
-              </div>
-            </div>
-
             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white transform hover:scale-105 transition-all">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-green-100 text-sm">Taxa de Acerto</p>
-                  <p className="text-3xl font-bold mt-1">{statistics?.accuracyRate || 0}%</p>
+                  <p className="text-3xl font-bold mt-1">{typeof statistics?.accuracyRate === 'number' ? statistics.accuracyRate.toFixed(1) : '0.0'}%</p>
                 </div>
                 <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
                   <Target className="w-6 h-6" />

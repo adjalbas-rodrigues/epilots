@@ -24,6 +24,7 @@ import {
   Clock,
   Sparkles
 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface NavbarProps {
   isAuthenticated?: boolean
@@ -33,6 +34,7 @@ interface NavbarProps {
 export default function Navbar({ isAuthenticated = false, userName = 'Aluno' }: NavbarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const {logout} = useAuth()
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
@@ -50,8 +52,7 @@ export default function Navbar({ isAuthenticated = false, userName = 'Aluno' }: 
   }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem('student_token')
-    sessionStorage.removeItem('loginToastShown')
+    logout();
     router.push('/auth/login')
   }
 

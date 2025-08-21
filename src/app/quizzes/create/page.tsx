@@ -268,11 +268,13 @@ export default function CreateQuizPage() {
   }
 
   const filteredSubjects = subjects.filter(subject =>
-    subject.name.toLowerCase().includes(searchTerm.toLowerCase())
+    subject.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    subject.topics && subject.topics.length > 0
   )
 
   const filteredMatters = matters.filter(matter =>
-    matter.name.toLowerCase().includes(searchTermMatter.toLowerCase())
+    matter.name.toLowerCase().includes(searchTermMatter.toLowerCase()) &&
+    matter.topics && matter.topics.length > 0
   )
 
   const toggleSubject = async (subjectId: number) => {
@@ -816,7 +818,7 @@ export default function CreateQuizPage() {
                         <div className="flex items-center gap-2">
                           <Activity className="w-4 h-4 text-gray-400" />
                           <span className="text-sm text-gray-600">
-                            {subjects.length} matérias
+                            {subjects.filter(s => s.topics && s.topics.length > 0).length} matérias
                           </span>
                         </div>
                       </div>
@@ -848,7 +850,7 @@ export default function CreateQuizPage() {
                               <div>
                                 <p className="text-xs text-blue-600 font-medium">Matérias</p>
                                 <p className="text-xl font-bold text-blue-900">
-                                  {subjects.filter(s => isAllTopicsSelected(s.id) || isPartiallySelected(s.id)).length}
+                                  {subjects.filter(s => s.topics && s.topics.length > 0 && (isAllTopicsSelected(s.id) || isPartiallySelected(s.id))).length}
                                 </p>
                               </div>
                               <Folder className="w-8 h-8 text-blue-300" />
@@ -1030,7 +1032,7 @@ export default function CreateQuizPage() {
                         <div className="flex items-center gap-2">
                           <Layers className="w-4 h-4 text-gray-400" />
                           <span className="text-sm text-gray-600">
-                            {matters.length} temas
+                            {matters.filter(m => m.topics && m.topics.length > 0).length} temas
                           </span>
                         </div>
                       </div>
@@ -1062,7 +1064,7 @@ export default function CreateQuizPage() {
                               <div>
                                 <p className="text-xs text-purple-600 font-medium">Temas</p>
                                 <p className="text-xl font-bold text-purple-900">
-                                  {matters.filter(m => isAllTopicsSelectedByMatter(m.id) || isPartiallySelectedByMatter(m.id)).length}
+                                  {matters.filter(m => m.topics && m.topics.length > 0 && (isAllTopicsSelectedByMatter(m.id) || isPartiallySelectedByMatter(m.id))).length}
                                 </p>
                               </div>
                               <FolderTree className="w-8 h-8 text-purple-300" />

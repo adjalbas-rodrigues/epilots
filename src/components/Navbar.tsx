@@ -18,6 +18,7 @@ import {
   Bell,
   Search,
   Plus,
+  Video,
   FileText,
   Trophy,
   Target,
@@ -68,8 +69,13 @@ export default function Navbar({ isAuthenticated = false, userName = 'Aluno' }: 
       icon: BookOpen,
     },
     { 
+      href: '/lessons', 
+      label: 'Aulas', 
+      icon: Video,
+    },
+    { 
       href: '/statistics', 
-      label: 'Acompanhamento pedagógico', 
+      label: 'Estatísticas', 
       icon: BarChart3,
     }
   ]

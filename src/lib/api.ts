@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005';
 
 interface ApiResponse<T = any> {
   data?: T;
@@ -234,6 +234,20 @@ class ApiClient {
       method: 'PUT',
       body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
     });
+  }
+
+  // Video Lessons endpoints
+  async getVideoLessons(params?: URLSearchParams) {
+    const queryString = params ? `?${params.toString()}` : '';
+    return this.request(`/videos/lessons/all${queryString}`);
+  }
+
+  async getFeaturedLessons() {
+    return this.request('/videos/lessons/featured');
+  }
+
+  async getVideoLesson(id: string) {
+    return this.request(`/videos/lessons/${id}`);
   }
 
   // Admin endpoints

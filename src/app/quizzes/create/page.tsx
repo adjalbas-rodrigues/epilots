@@ -844,7 +844,7 @@ export default function CreateQuizPage() {
                         </div>
 
                         {/* Quick Stats */}
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-2 gap-3">
                           <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-xl border border-blue-200">
                             <div className="flex items-center justify-between">
                               <div>
@@ -863,17 +863,6 @@ export default function CreateQuizPage() {
                                 <p className="text-xl font-bold text-purple-900">{selectedTopicIds.length}</p>
                               </div>
                               <FileText className="w-8 h-8 text-purple-300" />
-                            </div>
-                          </div>
-                          <div className="bg-gradient-to-br from-green-50 to-green-100 p-3 rounded-xl border border-green-200">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-xs text-green-600 font-medium">Questões</p>
-                                <p className="text-xl font-bold text-green-900">
-                                  {selectedTopicIds.length * 100}
-                                </p>
-                              </div>
-                              <Target className="w-8 h-8 text-green-300" />
                             </div>
                           </div>
                         </div>
@@ -1058,7 +1047,7 @@ export default function CreateQuizPage() {
                         </div>
 
                         {/* Quick Stats */}
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-2 gap-3">
                           <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-3 rounded-xl border border-purple-200">
                             <div className="flex items-center justify-between">
                               <div>
@@ -1077,17 +1066,6 @@ export default function CreateQuizPage() {
                                 <p className="text-xl font-bold text-indigo-900">{selectedTopicIdsByMatter.length}</p>
                               </div>
                               <Tags className="w-8 h-8 text-indigo-300" />
-                            </div>
-                          </div>
-                          <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-3 rounded-xl border border-pink-200">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-xs text-pink-600 font-medium">Questões</p>
-                                <p className="text-xl font-bold text-pink-900">
-                                  {selectedTopicIdsByMatter.length * 75}
-                                </p>
-                              </div>
-                              <Brain className="w-8 h-8 text-pink-300" />
                             </div>
                           </div>
                         </div>

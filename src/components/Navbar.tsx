@@ -253,13 +253,13 @@ export default function Navbar({ isAuthenticated = false, userName = 'Aluno' }: 
                             <User className="w-4 h-4 text-gray-600" />
                             <span className="text-sm text-gray-700">Meu Perfil</span>
                           </Link>
-                          <Link 
+                          {/* <Link 
                             href="/settings" 
                             className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors"
                           >
                             <Settings className="w-4 h-4 text-gray-600" />
                             <span className="text-sm text-gray-700">Configurações</span>
-                          </Link>
+                          </Link> */}
                           <button 
                             onClick={handleLogout}
                             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-50 transition-colors text-red-600"
@@ -311,53 +311,111 @@ export default function Navbar({ isAuthenticated = false, userName = 'Aluno' }: 
 
       {/* Mobile Menu */}
       {isAuthenticated && isMobileMenuOpen && (
-        <div className="fixed inset-0 z-30 lg:hidden">
+        <div className="fixed inset-0 z-50 lg:hidden">
           <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
+            className="absolute inset-0 bg-black/60 backdrop-blur-md" 
             onClick={() => setIsMobileMenuOpen(false)}
           />
-          <div className={`absolute right-0 top-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ${
+          <div className={`absolute right-0 top-0 h-full w-80 shadow-2xl transform transition-transform duration-300 overflow-hidden ${
             isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
           }`}>
-            <div className="p-6 pt-20 bg-gradient-to-b from-red-50 to-white h-full">
-              <nav className="space-y-2">
-                {navItems.map((item) => {
-                  const Icon = item.icon
-                  const isActive = pathname === item.href
-                  const isStatistics = item.href === '/statistics'
-                  
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={`
-                        flex items-center gap-3 px-4 py-3 rounded-xl
-                        transition-all duration-300
-                        ${isActive 
-                          ? isStatistics
-                            ? 'bg-green-600 text-white'
-                            : 'bg-blue-600 text-white'
-                          : 'text-gray-700 hover:bg-red-50'
-                        }
-                      `}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="font-medium">{item.label}</span>
-                    </Link>
-                  )
-                })}
+            {/* Background gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-red-600 via-red-700 to-red-900" />
+            
+            {/* Content */}
+            <div className="relative h-full flex flex-col">
+              {/* Header */}
+              <div className="p-6 pt-20 pb-8 bg-gradient-to-b from-black/20 to-transparent">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg border-2 border-white/30">
+                    <span className="text-white font-bold text-xl">
+                      {userName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-lg">{userName}</p>
+                    <p className="text-white/70 text-sm">Aluno Elite Pilots</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Navigation */}
+              <div className="flex-1 overflow-y-auto px-4 pb-6">
+                <nav className="space-y-2">
+                  {navItems.map((item) => {
+                    const Icon = item.icon
+                    const isActive = pathname === item.href
+                    const isStatistics = item.href === '/statistics'
+                    
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`
+                          flex items-center gap-4 px-5 py-4 rounded-2xl
+                          transition-all duration-300 transform
+                          ${isActive 
+                            ? 'bg-white text-red-700 shadow-lg scale-105'
+                            : 'text-white/90 hover:bg-white/10 hover:text-white'
+                          }
+                        `}
+                      >
+                        <div className={`p-2 rounded-xl ${
+                          isActive 
+                            ? isStatistics
+                              ? 'bg-gradient-to-br from-green-500 to-green-600 text-white'
+                              : 'bg-gradient-to-br from-red-500 to-red-600 text-white'
+                            : 'bg-white/10'
+                        }`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <span className="font-semibold text-base">{item.label}</span>
+                          {isActive && (
+                            <p className="text-xs mt-0.5 opacity-70">Você está aqui</p>
+                          )}
+                        </div>
+                        {isActive && (
+                          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                        )}
+                      </Link>
+                    )
+                  })}
+                </nav>
                 
-                <div className="pt-4 mt-4 border-t border-gray-200">
+                {/* Actions Section */}
+                {/* <div className="mt-6 pt-6 border-t border-white/20">
                   <button 
                     onClick={() => {}}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-red-50 w-full"
+                    className="flex items-center gap-4 px-5 py-4 rounded-2xl text-white/90 hover:bg-white/10 hover:text-white transition-all duration-300 w-full"
                   >
-                    <RefreshCw className="w-5 h-5" />
-                    <span className="font-medium">Limpar Questões Inéditas</span>
+                    <div className="p-2 rounded-xl bg-white/10">
+                      <RefreshCw className="w-5 h-5" />
+                    </div>
+                    <span className="font-semibold text-base">Limpar Questões Inéditas</span>
+                  </button>
+                </div> */}
+                
+                {/* Bottom Actions */}
+                <div className="mt-6 pt-6 border-t border-white/20 space-y-2">
+                  <Link 
+                    href="/profile"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-4 px-5 py-3 rounded-2xl text-white/90 hover:bg-white/10 hover:text-white transition-all duration-300"
+                  >
+                    <User className="w-5 h-5" />
+                    <span className="font-medium">Meu Perfil</span>
+                  </Link>
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center gap-4 px-5 py-3 rounded-2xl text-white/90 hover:bg-red-500/20 hover:text-white transition-all duration-300 w-full"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span className="font-medium">Sair</span>
                   </button>
                 </div>
-              </nav>
+              </div>
             </div>
           </div>
         </div>

@@ -144,4 +144,5 @@ storybook-static/
 # Optional: Lock files (se não quiser no repositório)
 package-lock.json
 yarn.lock
-pnpm-lock.yamlmaterialpublico.tar.gz
+pnpm-lock.yaml
+/public/materialpublico.tar.gz

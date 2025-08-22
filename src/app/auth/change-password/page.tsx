@@ -81,7 +81,7 @@ export default function ChangePasswordPage() {
     try {
       const response = await apiClient.request('/auth/student/force-change-password', {
         method: 'POST',
-        data: { newPassword }
+        body: JSON.stringify({ newPassword })
       })
       
       if (response.status === 'success' || response.message === 'Password changed successfully') {

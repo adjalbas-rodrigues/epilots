@@ -204,6 +204,12 @@ class ApiClient {
     return this.request(`/quizzes/history?limit=${limit}&offset=${offset}`);
   }
 
+  async deleteQuiz(quizId: number) {
+    return this.request(`/quizzes/${quizId}`, {
+      method: 'DELETE'
+    });
+  }
+
   async getReviewStats() {
     return this.request<{ wrongQuestions: number; markedQuestions: number }>('/quizzes/review-stats');
   }

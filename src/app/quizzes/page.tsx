@@ -90,6 +90,21 @@ export default function QuizzesPage() {
     }
   }
 
+  const handleDeleteQuiz = async (quizId: number) => {
+    if (!confirm('Tem certeza que deseja excluir este quest?')) {
+      return
+    }
+
+    try {
+      await apiClient.deleteQuiz(quizId)
+      showToast('Quest excluído com sucesso!', 'success')
+      fetchQuizHistory() // Refresh the list
+    } catch (error) {
+      console.error('Error deleting quiz:', error)
+      showToast('Erro ao excluir quest', 'error')
+    }
+  }
+
   // Separate quizzes into open and completed
   const openQuizzes = quizHistory?.quizzes.filter(quiz => !quiz.finishedAt) || []
   const completedQuizzes = quizHistory?.quizzes.filter(quiz => quiz.finishedAt) || []
@@ -326,7 +341,10 @@ export default function QuizzesPage() {
                           >
                             <Play className="w-5 h-5" />
                           </Link>
-                          <button className="p-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                          <button 
+                            onClick={() => handleDeleteQuiz(quiz.id)}
+                            className="p-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          >
                             <Trash2 className="w-5 h-5" />
                           </button>
                         </>

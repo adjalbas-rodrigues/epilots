@@ -17,7 +17,8 @@ import {
   Loader2,
   Play,
   Zap,
-  Award
+  Award,
+  RefreshCcw
 } from 'lucide-react'
 import { useToast } from '@/hooks/useToast'
 import { useAuth } from '@/contexts/AuthContext'
@@ -136,9 +137,17 @@ export default function StudentDashboard() {
             <h1 className="text-4xl font-bold text-gray-800 mb-2">
               Bem-vindo, {user?.name || 'Piloto'}!
             </h1>
-            <p className="text-gray-600 text-lg">
+            <p className="text-gray-600 text-lg mb-4">
               Continue sua jornada rumo à excelência na aviação
             </p>
+            <button
+              onClick={fetchStatistics}
+              disabled={loadingStats}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            >
+              <RefreshCcw className={`w-4 h-4 ${loadingStats ? 'animate-spin' : ''}`} />
+              Atualizar Estatísticas
+            </button>
           </div>
 
           {/* Stats Cards - Same style as quizzes page */}

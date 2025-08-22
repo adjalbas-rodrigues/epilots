@@ -509,9 +509,9 @@ export default function QuizPerformPage() {
             <div className="lg:col-span-8">
               <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
                 {/* Subject and Topic Badges */}
-                <div className="flex items-center gap-2 mb-6">
+                {currentQuestion.topic && ( <div className="flex items-center gap-2 mb-6">
                   <BookOpen className="w-5 h-5 text-gray-600" />
-                  <span 
+                  {/* <span 
                     className="px-3 py-1 rounded-full text-sm font-medium"
                     style={{
                       backgroundColor: quizData.quiz.subject.color ? `${quizData.quiz.subject.color}20` : '#f3f4f6',
@@ -519,13 +519,13 @@ export default function QuizPerformPage() {
                     }}
                   >
                     {quizData.quiz.subject.name}
-                  </span>
+                  </span> */}
                   {currentQuestion.topic && (
                     <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
                       {currentQuestion.topic.name}
                     </span>
                   )}
-                </div>
+                </div>)}
 
                 {/* Question */}
                 <div className="mb-8">

@@ -72,13 +72,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem('auth_token', response.token)
           localStorage.setItem('auth_user', JSON.stringify(response.student))
           dispatch(loginSuccess({ user: response.student, token: response.token }))
-          router.push('/auth/account')
+          
+          // Check if user needs to change password
+          if (response.student.must_change_password) {
+            router.push('/auth/change-password')
+          } else {
+            router.push('/auth/account')
+          }
         } else if (response.data?.student && response.data?.token) {
           // Save to localStorage for persistence
           localStorage.setItem('auth_token', response.data.token)
           localStorage.setItem('auth_user', JSON.stringify(response.data.student))
           dispatch(loginSuccess({ user: response.data.student, token: response.data.token }))
-          router.push('/auth/account')
+          
+          // Check if user needs to change password
+          if (response.data.student.must_change_password) {
+            router.push('/auth/change-password')
+          } else {
+            router.push('/auth/account')
+          }
         }
       }
     } catch (error: any) {

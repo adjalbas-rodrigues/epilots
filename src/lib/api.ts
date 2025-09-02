@@ -1,3 +1,5 @@
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005';
 
 interface ApiResponse<T = any> {
@@ -10,9 +12,62 @@ interface ApiResponse<T = any> {
 class ApiClient {
   private token: string | null = null;
   private tokenKey = 'auth_token';
+  private axiosInstance: AxiosInstance;
 
   constructor() {
     // Token será carregado quando necessário
+    this.axiosInstance = axios.create({
+      baseURL: API_BASE_URL,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      withCredentials: true, // Important for CORS
+    });
+
+    // Request interceptor para adicionar token
+    this.axiosInstance.interceptors.request.use(
+      (config) => {
+        const token = this.getToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        console.log(`🌐 ${config.method?.toUpperCase()} ${config.url}`);
+        if (config.data) {
+          console.log('📤 Request body:', config.data);
+        }
+        console.log('🔑 Headers:', config.headers);
+        return config;
+      },
+      (error) => {
+        console.error('❌ Request Error:', error);
+        return Promise.reject(error);
+      }
+    );
+
+    // Response interceptor para tratamento de erros
+    this.axiosInstance.interceptors.response.use(
+      (response) => {
+        console.log(`📥 Response status: ${response.status} ${response.statusText}`);
+        console.log('📦 Response data:', response.data);
+        return response;
+      },
+      (error: AxiosError<ApiResponse>) => {
+        console.error('❌ API Error:', error);
+        
+        // Se receber 401, limpar token e redirecionar
+        if (error.response?.status === 401) {
+          console.log('🔒 Unauthorized - clearing token and redirecting to login');
+          this.clearToken();
+          if (typeof window !== 'undefined') {
+            window.location.href = '/auth/login';
+          }
+        }
+        
+        // Rejeitar com mensagem de erro apropriada
+        const message = error.response?.data?.message || error.message || 'API request failed';
+        return Promise.reject(new Error(message));
+      }
+    );
   }
 
   private getToken(): string | null {
@@ -37,50 +92,22 @@ class ApiClient {
       localStorage.removeItem('token');
       localStorage.removeItem('student_token');
       localStorage.removeItem('admin_token');
+      localStorage.removeItem('persist:root');
     }
   }
 
   async request<T = any>(
     endpoint: string,
-    options: RequestInit = {}
+    options: AxiosRequestConfig = {}
   ): Promise<ApiResponse<T>> {
-    const url = `${API_BASE_URL}${endpoint}`;
-    
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...(options.headers as Record<string, string> || {}),
-    };
-
-    const token = this.getToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    console.log(`🌐 ${options.method || 'GET'} ${url}`);
-    if (options.body) {
-      console.log('📤 Request body:', JSON.parse(options.body as string));
-    }
-    console.log('🔑 Headers:', headers);
-
     try {
-      const response = await fetch(url, {
+      const response = await this.axiosInstance({
+        url: endpoint,
         ...options,
-        headers,
-        credentials: 'include', // Important for CORS
       });
-
-      console.log(`📥 Response status: ${response.status} ${response.statusText}`);
-      
-      const data = await response.json();
-      console.log('📦 Response data:', data);
-
-      if (!response.ok) {
-        throw new Error(data.message || 'API request failed');
-      }
-
-      return data;
+      return response.data;
     } catch (error) {
-      console.error('❌ API Error:', error);
+      // Erro já tratado pelo interceptor
       throw error;
     }
   }
@@ -89,7 +116,7 @@ class ApiClient {
   async loginStudent(email: string, password: string) {
     const response = await this.request<{ token: string; student: any }>('/auth/student/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      data: { email, password },
     });
 
     console.log('🔐 Login response:', response);
@@ -107,7 +134,7 @@ class ApiClient {
   async loginAdmin(email: string, password: string) {
     const response = await this.request<{ token: string; user: any }>('/auth/admin/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      data: { email, password },
     });
 
     if (response.token) {
@@ -120,7 +147,7 @@ class ApiClient {
   async registerStudent(name: string, email: string, password: string) {
     const response = await this.request('/auth/student/register', {
       method: 'POST',
-      body: JSON.stringify({ name, email, password }),
+      data: { name, email, password },
     });
 
     if (response.token) {
@@ -161,7 +188,7 @@ class ApiClient {
   ) {
     return this.request<{ quizId: number; questionCount: number }>('/quizzes', {
       method: 'POST',
-      body: JSON.stringify({ questionCount, topicIds, baseIds, feedbackMode, onlyWrong, onlyMarked, name, onlyInedited }),
+      data: { questionCount, topicIds, baseIds, feedbackMode, onlyWrong, onlyMarked, name, onlyInedited },
     });
   }
 
@@ -172,14 +199,14 @@ class ApiClient {
   async submitAnswer(quizId: number, questionId: number, choiceId: number) {
     return this.request(`/quizzes/${quizId}/answer`, {
       method: 'POST',
-      body: JSON.stringify({ question_id: questionId, choice_id: choiceId }),
+      data: { question_id: questionId, choice_id: choiceId },
     });
   }
 
   async markQuestion(quizId: number, questionId: number, marked: boolean) {
     return this.request(`/quizzes/${quizId}/mark`, {
       method: 'POST',
-      body: JSON.stringify({ question_id: questionId, marked }),
+      data: { question_id: questionId, marked },
     });
   }
 
@@ -210,6 +237,13 @@ class ApiClient {
     });
   }
 
+  async reportQuestionError(quizId: number, questionId: number, errorDescription: string) {
+    return this.request(`/quizzes/${quizId}/report-error`, {
+      method: 'POST',
+      data: { questionId, errorDescription }
+    });
+  }
+
   async getReviewStats() {
     return this.request<{ wrongQuestions: number; markedQuestions: number }>('/quizzes/review-stats');
   }
@@ -231,14 +265,14 @@ class ApiClient {
   async updateStudentProfile(data: { name?: string; phone?: string; birth_date?: string }) {
     return this.request('/student/profile', {
       method: 'PUT',
-      body: JSON.stringify(data),
+      data: data,
     });
   }
 
   async changePassword(currentPassword: string, newPassword: string) {
     return this.request('/student/password', {
       method: 'PUT',
-      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+      data: { current_password: currentPassword, new_password: newPassword },
     });
   }
 
@@ -270,14 +304,14 @@ class ApiClient {
   async createStudent(data: { name: string; email: string; password: string; registration_number?: string }) {
     return this.request('/admin/students', {
       method: 'POST',
-      body: JSON.stringify(data),
+      data: data,
     });
   }
 
   async updateStudent(id: number, data: any) {
     return this.request(`/admin/students/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(data),
+      data: data,
     });
   }
 
@@ -302,21 +336,21 @@ class ApiClient {
   async getQuestionCount(topicIds: number[], baseIds: number[], statementText?: string) {
     return this.request<{ count: number; filters: any }>('/question-count/count', {
       method: 'POST',
-      body: JSON.stringify({ topicIds, baseIds, statementText }),
+      data: { topicIds, baseIds, statementText },
     });
   }
 
   async createQuestion(data: any) {
     return this.request('/admin/questions', {
       method: 'POST',
-      body: JSON.stringify(data),
+      data: data,
     });
   }
 
   async updateQuestion(id: number, data: any) {
     return this.request(`/admin/questions/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(data),
+      data: data,
     });
   }
 

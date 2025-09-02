@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import VdoCipherPlayerFinal from '@/components/VdoCipherPlayerFinal'
+import ReportErrorModal from '@/components/ReportErrorModal'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/useToast'
 import apiClient from '@/lib/api'
@@ -24,7 +25,8 @@ import {
   Hash,
   PlayCircle,
   Keyboard,
-  Info
+  Info,
+  AlertTriangle
 } from 'lucide-react'
 
 interface Choice {
@@ -96,6 +98,7 @@ export default function QuizPerformPage() {
   const [feedbacks, setFeedbacks] = useState<{ [questionId: number]: any }>({})
   const [showFeedback, setShowFeedback] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(true)
+  const [showReportModal, setShowReportModal] = useState(false)
 
   useEffect(() => {
     if (!user) {
@@ -437,6 +440,13 @@ export default function QuizPerformPage() {
                   title="Marcar para revisão"
                 >
                   <Flag className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setShowReportModal(true)}
+                  className="p-2 rounded-lg hover:bg-red-50 text-gray-600 hover:text-red-600 transition-all"
+                  title="Reportar erro na questão"
+                >
+                  <AlertTriangle className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -781,6 +791,15 @@ export default function QuizPerformPage() {
           </div>
         </div>
       </div>
+
+      {/* Report Error Modal */}
+      <ReportErrorModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        quizId={quizId}
+        questionId={currentQuestion?.id || 0}
+        questionStatement={currentQuestion?.statement || ''}
+      />
     </>
   )
 }

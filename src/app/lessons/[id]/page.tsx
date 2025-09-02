@@ -228,7 +228,7 @@ export default function VideoLessonPage() {
       setSubmittingComment(true)
       const response = await apiClient.request(`/videos/lessons/${videoId}/comments`, {
         method: 'POST',
-        body: JSON.stringify({ comment: newComment })
+        data: { comment: newComment }
       })
       
       if (response.status === 'success') {
@@ -251,7 +251,7 @@ export default function VideoLessonPage() {
       setSubmittingComment(true)
       const response = await apiClient.request(`/videos/lessons/${videoId}/comments`, {
         method: 'POST',
-        body: JSON.stringify({ comment: replyText, parent_id: parentId })
+        data: { comment: replyText, parent_id: parentId }
       })
       
       if (response.status === 'success') {

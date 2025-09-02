@@ -59,7 +59,7 @@ export default function VdoCipherPlayerFinal({
       // Fetch OTP
       const response = await apiClient.request('/videos/get-otp', {
         method: 'POST',
-        body: JSON.stringify({ videoId })
+        data: { videoId }
       })
       
       if (response.otp && response.playbackInfo) {

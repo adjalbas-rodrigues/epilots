@@ -595,6 +595,10 @@ class ApiClient {
       data: { code, plan },
     });
   }
+
+  async getMyPersonalCoupon() {
+    return this.request('/payments/coupon/mine');
+  }
 }
 
 export const apiClient = new ApiClient();

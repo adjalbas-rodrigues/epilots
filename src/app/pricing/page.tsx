@@ -40,6 +40,7 @@ export default function PricingPage() {
   // PIX Automático (recurring) desativado temporariamente — sempre one-off
   const [paymentMode] = useState<'one-off' | 'recurring'>('one-off')
   const [couponCode, setCouponCode] = useState<string | null>(null)
+  const [personalCouponCode, setPersonalCouponCode] = useState<string | null>(null)
   const [paid, setPaid] = useState(false)
 
   useEffect(() => {
@@ -54,6 +55,13 @@ export default function PricingPage() {
         .then((res: any) => setPlans(res.data || []))
         .catch(e => console.error('Erro ao carregar planos:', e))
         .finally(() => setLoading(false))
+
+      // Pre-fill personal coupon if the student has one
+      apiClient.getMyPersonalCoupon()
+        .then((res: any) => {
+          if (res.data?.code) setPersonalCouponCode(res.data.code)
+        })
+        .catch(e => console.error('Erro ao buscar cupom pessoal:', e))
     }
   }, [isAuthenticated])
 
@@ -233,6 +241,7 @@ export default function PricingPage() {
               <CouponInput
                 plan={plans[0].plan}
                 originalCents={plans[0].amount_cents}
+                initialCode={personalCouponCode}
                 onApply={setCouponCode}
               />
             </div>

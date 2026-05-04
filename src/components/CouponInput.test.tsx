@@ -20,6 +20,28 @@ describe('CouponInput', () => {
     expect(screen.getByRole('button', { name: /aplicar/i })).toBeInTheDocument();
   });
 
+  it('auto-applies initialCode on mount', async () => {
+    const onApply = vi.fn();
+    mockValidate.mockResolvedValue({
+      data: { code: 'PERSONAL70', original_cents: 9990, discount_cents: 6993, final_cents: 2997 }
+    });
+
+    render(
+      <CouponInput plan="mensal" originalCents={9990} initialCode="PERSONAL70" onApply={onApply} />
+    );
+
+    await waitFor(() => expect(mockValidate).toHaveBeenCalledWith('PERSONAL70', 'mensal'));
+    expect(await screen.findByText(/desconto de R\$ 69,93/i)).toBeInTheDocument();
+    expect(onApply).toHaveBeenCalledWith('PERSONAL70');
+  });
+
+  it('does not auto-apply when initialCode is empty/null', async () => {
+    const onApply = vi.fn();
+    render(<CouponInput plan="mensal" originalCents={9990} initialCode={null} onApply={onApply} />);
+    expect(mockValidate).not.toHaveBeenCalled();
+    expect(onApply).not.toHaveBeenCalled();
+  });
+
   it('disables apply button when input is empty', () => {
     render(<CouponInput plan="mensal" originalCents={9990} onApply={vi.fn()} />);
     expect(screen.getByRole('button', { name: /aplicar/i })).toBeDisabled();

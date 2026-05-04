@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Tag, Loader2, X, Check } from 'lucide-react'
 import apiClient from '@/lib/api'
 
@@ -14,24 +14,27 @@ interface ValidationResult {
 interface Props {
   plan: string
   originalCents: number
+  /** When provided, the component auto-validates and applies this code on mount. */
+  initialCode?: string | null
   onApply: (code: string | null) => void
 }
 
 const formatBRL = (cents: number) =>
   (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
-export default function CouponInput({ plan, originalCents, onApply }: Props) {
-  const [code, setCode] = useState('')
+export default function CouponInput({ plan, originalCents, initialCode, onApply }: Props) {
+  const [code, setCode] = useState(initialCode || '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [applied, setApplied] = useState<ValidationResult | null>(null)
 
-  const handleApply = async () => {
-    if (!code.trim()) return
+  const handleApply = async (rawCode?: string) => {
+    const candidate = (rawCode ?? code).trim()
+    if (!candidate) return
     setLoading(true)
     setError(null)
     try {
-      const upper = code.trim().toUpperCase()
+      const upper = candidate.toUpperCase()
       const res: any = await apiClient.validateCoupon(upper, plan)
       setApplied(res.data)
       onApply(res.data.code)
@@ -43,6 +46,14 @@ export default function CouponInput({ plan, originalCents, onApply }: Props) {
       setLoading(false)
     }
   }
+
+  // Auto-apply when an initialCode is provided
+  useEffect(() => {
+    if (initialCode && !applied && !loading) {
+      handleApply(initialCode)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialCode])
 
   const handleRemove = () => {
     setCode('')
@@ -102,7 +113,7 @@ export default function CouponInput({ plan, originalCents, onApply }: Props) {
           onKeyDown={(e) => { if (e.key === 'Enter') handleApply() }}
         />
         <button
-          onClick={handleApply}
+          onClick={() => handleApply()}
           disabled={loading || !code.trim()}
           className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 flex items-center gap-2 text-sm font-medium"
         >

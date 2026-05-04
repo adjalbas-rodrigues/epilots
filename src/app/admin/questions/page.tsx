@@ -5,6 +5,7 @@ import {
   Search, Loader2, FileQuestion, Trash2, Eye, X
 } from 'lucide-react'
 import apiClient from '@/lib/api'
+import { rewriteHtmlForRender } from '@/lib/htmlAssets'
 
 interface Choice {
   id: number
@@ -117,9 +118,7 @@ export default function AdminQuestionsPage() {
                 <tr key={q.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm text-gray-500 font-mono">{q.id}</td>
                   <td className="px-6 py-4 text-sm text-gray-900 max-w-xl truncate">
-                    <div dangerouslySetInnerHTML={{
-                      __html: (q.statement || '').replace(/<[^>]+>/g, '').slice(0, 200)
-                    }} />
+                    <div>{(q.statement || '').replace(/<[^>]+>/g, '').slice(0, 200)}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-1">
@@ -172,7 +171,7 @@ function ViewModal({ question, onClose }: { question: Question; onClose: () => v
         </div>
         <div className="p-6 space-y-4">
           <div className="prose prose-sm max-w-none">
-            <div dangerouslySetInnerHTML={{ __html: question.statement || '' }} />
+            <div dangerouslySetInnerHTML={{ __html: rewriteHtmlForRender(question.statement || '') }} />
           </div>
           <div className="space-y-2">
             <p className="text-sm font-semibold text-gray-700">Alternativas:</p>
@@ -184,7 +183,7 @@ function ViewModal({ question, onClose }: { question: Question; onClose: () => v
                     : 'bg-gray-50 border-gray-200'
                 }`}>
                 <span className="font-bold mr-2">{c.label})</span>
-                <span dangerouslySetInnerHTML={{ __html: c.description || '' }} />
+                <span dangerouslySetInnerHTML={{ __html: rewriteHtmlForRender(c.description || '') }} />
                 {c.is_correct && <span className="ml-2 text-xs text-green-700 font-semibold">✓ Correta</span>}
               </div>
             ))}

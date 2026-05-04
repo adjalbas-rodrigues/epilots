@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import VdoCipherPlayerFinal from '@/components/VdoCipherPlayerFinal'
+import { normalizeLegacyHtml } from '@/lib/htmlAssets'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/useToast'
 import apiClient from '@/lib/api'
@@ -309,11 +310,7 @@ export default function QuizFeedbackPage() {
                               </div>
                               <div 
                                 className={`text-gray-700 ${!isExpanded ? 'line-clamp-2' : ''}`}
-                                dangerouslySetInnerHTML={{ 
-                                  __html: item.question.includes('<') && item.question.includes('>') 
-                                    ? item.question 
-                                    : item.question.replace(/\n/g, '<br />').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
-                                }}
+                                dangerouslySetInnerHTML={{ __html: normalizeLegacyHtml(item.question) }}
                               />
                               <p className={`text-sm mt-2 font-medium ${
                                 isCorrect ? 'text-green-600' : 'text-red-600'
@@ -342,11 +339,7 @@ export default function QuizFeedbackPage() {
                                 <div className="text-sm font-semibold text-gray-600 mb-2">Enunciado completo:</div>
                                 <div 
                                   className="text-gray-700"
-                                  dangerouslySetInnerHTML={{ 
-                                    __html: item.question.includes('<') && item.question.includes('>') 
-                                      ? item.question 
-                                      : item.question.replace(/\n/g, '<br />').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
-                                  }}
+                                  dangerouslySetInnerHTML={{ __html: normalizeLegacyHtml(item.question) }}
                                 />
                               </div> */}
                               
@@ -355,11 +348,7 @@ export default function QuizFeedbackPage() {
                                 isCorrect ? 'border-green-400 bg-green-100' : 'border-red-400 bg-red-100'
                               }`}>
                                 <div 
-                                  dangerouslySetInnerHTML={{ 
-                                    __html: item.selected_answer.includes('<') && item.selected_answer.includes('>') 
-                                      ? item.selected_answer 
-                                      : item.selected_answer.replace(/\n/g, '<br />').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
-                                  }}
+                                  dangerouslySetInnerHTML={{ __html: normalizeLegacyHtml(item.selected_answer) }}
                                 />
                               </div>
                               
@@ -368,11 +357,7 @@ export default function QuizFeedbackPage() {
                                   <div className="text-sm font-semibold text-gray-600 mb-2 mt-4">Resposta correta:</div>
                                   <div className="p-3 rounded-lg border border-green-400 bg-green-100">
                                     <div 
-                                      dangerouslySetInnerHTML={{ 
-                                        __html: item.correct_answer.includes('<') && item.correct_answer.includes('>') 
-                                          ? item.correct_answer 
-                                          : item.correct_answer.replace(/\n/g, '<br />').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
-                                      }}
+                                      dangerouslySetInnerHTML={{ __html: normalizeLegacyHtml(item.correct_answer) }}
                                     />
                                   </div>
                                 </>
@@ -384,11 +369,7 @@ export default function QuizFeedbackPage() {
                                   <div className="p-3 rounded-lg border border-blue-200 bg-blue-50">
                                     <div 
                                       className="text-gray-700"
-                                      dangerouslySetInnerHTML={{ 
-                                        __html: item.explanation.includes('<') && item.explanation.includes('>') 
-                                          ? item.explanation 
-                                          : item.explanation.replace(/\n/g, '<br />').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
-                                      }}
+                                      dangerouslySetInnerHTML={{ __html: normalizeLegacyHtml(item.explanation) }}
                                     />
                                   </div>
                                 </>

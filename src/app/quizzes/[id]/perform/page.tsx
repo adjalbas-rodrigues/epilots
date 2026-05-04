@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import VdoCipherPlayerFinal from '@/components/VdoCipherPlayerFinal'
+import { rewriteHtmlForRender } from '@/lib/htmlAssets'
 import ReportErrorModal from '@/components/ReportErrorModal'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/useToast'
@@ -295,19 +296,20 @@ export default function QuizPerformPage() {
   
   const processedStatement = useMemo(() => {
     if (!currentQuestion) return ''
-    return currentQuestion.statement.includes('<') && currentQuestion.statement.includes('>') 
-      ? currentQuestion.statement 
+    const html = currentQuestion.statement.includes('<') && currentQuestion.statement.includes('>')
+      ? currentQuestion.statement
       : currentQuestion.statement.replace(/\n/g, '<br />').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
+    return rewriteHtmlForRender(html)
   }, [currentQuestion?.statement])
-  
+
   const processedChoices = useMemo(() => {
     if (!currentQuestion) return []
-    return currentQuestion.choices.map(choice => ({
-      ...choice,
-      processedHtml: choice.description.includes('<') && choice.description.includes('>') 
-        ? choice.description 
+    return currentQuestion.choices.map(choice => {
+      const raw = choice.description.includes('<') && choice.description.includes('>')
+        ? choice.description
         : choice.description.replace(/\n/g, '<br />').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
-    }))
+      return { ...choice, processedHtml: rewriteHtmlForRender(raw) }
+    })
   }, [currentQuestion?.choices])
   
   // Keyboard shortcuts

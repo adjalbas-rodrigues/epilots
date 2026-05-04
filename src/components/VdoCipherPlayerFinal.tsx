@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Film, Play, X, Loader2, Clock, User, AlertCircle } from 'lucide-react'
-import apiClient from '@/lib/api'
+import apiClient, { ApiError } from '@/lib/api'
+import SubscriptionRequiredModal from './SubscriptionRequiredModal'
 
 // Helper function to decode HTML entities
 const decodeHtmlEntities = (text: string): string => {
@@ -36,6 +37,11 @@ export default function VdoCipherPlayerFinal({
   const [loading, setLoading] = useState(false)
   const [showPlayer, setShowPlayer] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [subscriptionGate, setSubscriptionGate] = useState<{
+    reason: 'SUBSCRIPTION_REQUIRED' | 'FEATURE_NOT_IN_PLAN'
+    currentPlan?: string
+    feature?: string
+  } | null>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   // Format duration from seconds to readable format
@@ -76,8 +82,22 @@ export default function VdoCipherPlayerFinal({
       } else {
         throw new Error('Failed to get video credentials')
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching OTP:', err)
+      if (err instanceof ApiError || err?.code) {
+        if (err.code === 'SUBSCRIPTION_REQUIRED') {
+          setSubscriptionGate({ reason: 'SUBSCRIPTION_REQUIRED' })
+          return
+        }
+        if (err.code === 'FEATURE_NOT_IN_PLAN') {
+          setSubscriptionGate({
+            reason: 'FEATURE_NOT_IN_PLAN',
+            currentPlan: err.data?.plan,
+            feature: err.data?.required || 'access_videos'
+          })
+          return
+        }
+      }
       setError('Não foi possível carregar o vídeo. Por favor, tente novamente.')
     } finally {
       setLoading(false)
@@ -91,6 +111,16 @@ export default function VdoCipherPlayerFinal({
 
   if (!showPlayer) {
     return (
+      <>
+      {subscriptionGate && (
+        <SubscriptionRequiredModal
+          open
+          onClose={() => setSubscriptionGate(null)}
+          reason={subscriptionGate.reason}
+          currentPlan={subscriptionGate.currentPlan}
+          feature={subscriptionGate.feature}
+        />
+      )}
       <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 rounded-2xl overflow-hidden shadow-2xl transform transition-all hover:scale-[1.02]">
         {/* Header */}
         <div className="bg-gradient-to-r from-red-600 to-pink-600 px-6 py-4">
@@ -204,6 +234,7 @@ export default function VdoCipherPlayerFinal({
           </div>
         )}
       </div>
+      </>
     )
   }
 

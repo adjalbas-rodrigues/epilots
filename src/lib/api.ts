@@ -9,6 +9,19 @@ interface ApiResponse<T = any> {
   [key: string]: any;
 }
 
+export class ApiError extends Error {
+  status?: number;
+  code?: string;
+  data?: any;
+  constructor(message: string, opts: { status?: number; code?: string; data?: any } = {}) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = opts.status;
+    this.code = opts.code;
+    this.data = opts.data;
+  }
+}
+
 class ApiClient {
   private token: string | null = null;
   private tokenKey = 'auth_token';
@@ -53,19 +66,24 @@ class ApiClient {
       },
       (error: AxiosError<ApiResponse>) => {
         console.error('❌ API Error:', error);
-        
+        const status = error.response?.status;
+        const data: any = error.response?.data;
+
         // Se receber 401, limpar token e redirecionar
-        if (error.response?.status === 401) {
+        if (status === 401) {
           console.log('🔒 Unauthorized - clearing token and redirecting to login');
           this.clearToken();
           if (typeof window !== 'undefined') {
             window.location.href = '/auth/login';
           }
         }
-        
-        // Rejeitar com mensagem de erro apropriada
-        const message = error.response?.data?.message || error.message || 'API request failed';
-        return Promise.reject(new Error(message));
+
+        const message = data?.message || error.message || 'API request failed';
+        return Promise.reject(new ApiError(message, {
+          status,
+          code: data?.code,
+          data
+        }));
       }
     );
   }

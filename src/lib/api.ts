@@ -571,6 +571,7 @@ class ApiClient {
     valid_from?: string | null;
     valid_until?: string | null;
     is_active?: boolean;
+    student_id?: number | null;
   }) {
     return this.request('/admin/coupons', { method: 'POST', data });
   }

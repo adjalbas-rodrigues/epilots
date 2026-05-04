@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+// import necessary for student lookup helpers
 import {
   Plus,
   Edit2,
@@ -23,6 +24,8 @@ interface Coupon {
   valid_from: string | null
   valid_until: string | null
   is_active: boolean
+  student_id?: number | null
+  student?: { id: number; name: string; email: string } | null
 }
 
 const formatDiscount = (c: Coupon) => {
@@ -107,6 +110,7 @@ export default function AdminCouponsPage() {
               <tr>
                 <th className="px-6 py-3 text-left">Código</th>
                 <th className="px-6 py-3 text-left">Desconto</th>
+                <th className="px-6 py-3 text-left">Restrição</th>
                 <th className="px-6 py-3 text-left">Usos</th>
                 <th className="px-6 py-3 text-left">Validade</th>
                 <th className="px-6 py-3 text-left">Status</th>
@@ -118,6 +122,15 @@ export default function AdminCouponsPage() {
                 <tr key={c.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 font-mono font-semibold text-gray-900">{c.code}</td>
                   <td className="px-6 py-4 text-gray-700">{formatDiscount(c)}</td>
+                  <td className="px-6 py-4 text-xs">
+                    {c.student ? (
+                      <span className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 rounded-full">
+                        {c.student.name}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">Pública</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {c.used_count} / {c.max_uses ?? '∞'}
                   </td>
@@ -196,7 +209,28 @@ function CouponModal({ editing, onClose, onSaved }: ModalProps) {
   const [validFrom, setValidFrom] = useState(editing?.valid_from || '')
   const [validUntil, setValidUntil] = useState(editing?.valid_until || '')
   const [isActive, setIsActive] = useState(editing?.is_active ?? true)
+  const [bindToStudent, setBindToStudent] = useState(editing?.student_id != null)
+  const [studentSearch, setStudentSearch] = useState(editing?.student ? editing.student.name : '')
+  const [studentResults, setStudentResults] = useState<Array<{ id: number; name: string; email: string }>>([])
+  const [studentId, setStudentId] = useState<number | null>(editing?.student_id ?? null)
+  const [studentLabel, setStudentLabel] = useState<string>(
+    editing?.student ? `${editing.student.name} (${editing.student.email})` : ''
+  )
   const [saving, setSaving] = useState(false)
+
+  // Search students when binding
+  useEffect(() => {
+    if (!bindToStudent || !studentSearch.trim() || studentSearch === studentLabel) {
+      setStudentResults([])
+      return
+    }
+    const t = setTimeout(() => {
+      apiClient.getStudents(1, 10, studentSearch.trim())
+        .then((res: any) => setStudentResults(res.data?.students || []))
+        .catch(() => setStudentResults([]))
+    }, 250)
+    return () => clearTimeout(t)
+  }, [bindToStudent, studentSearch, studentLabel])
 
   const handleSave = async () => {
     if (!code.trim() && !editing) {
@@ -209,15 +243,21 @@ function CouponModal({ editing, onClose, onSaved }: ModalProps) {
       return
     }
 
+    if (bindToStudent && studentId == null) {
+      alert('Selecione o aluno na lista ou desmarque "Restringir a um aluno"')
+      return
+    }
+
     setSaving(true)
     try {
-      const payload = {
+      const payload: any = {
         discount_type: discountType,
         discount_value: value,
         max_uses: maxUses ? parseInt(maxUses, 10) : null,
         valid_from: validFrom || null,
         valid_until: validUntil || null,
-        is_active: isActive
+        is_active: isActive,
+        student_id: bindToStudent ? studentId : null
       }
       if (editing) {
         await apiClient.updateCoupon(editing.id, payload)
@@ -331,6 +371,73 @@ function CouponModal({ editing, onClose, onSaved }: ModalProps) {
             />
             <span className="text-sm text-gray-700">Ativo</span>
           </label>
+
+          <div className="border-t pt-4">
+            <label className="flex items-center gap-2 mb-2">
+              <input
+                type="checkbox"
+                checked={bindToStudent}
+                onChange={(e) => {
+                  setBindToStudent(e.target.checked)
+                  if (!e.target.checked) {
+                    setStudentId(null)
+                    setStudentSearch('')
+                    setStudentLabel('')
+                    setStudentResults([])
+                  }
+                }}
+                className="w-4 h-4"
+              />
+              <span className="text-sm font-medium text-gray-700">
+                Restringir a um aluno específico
+              </span>
+            </label>
+
+            {bindToStudent && (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={studentSearch}
+                  onChange={(e) => {
+                    setStudentSearch(e.target.value)
+                    setStudentId(null)
+                    setStudentLabel('')
+                  }}
+                  placeholder="Buscar aluno por nome ou email..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+                {studentResults.length > 0 && (
+                  <div className="max-h-40 overflow-y-auto border rounded-lg divide-y">
+                    {studentResults.map(s => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => {
+                          setStudentId(s.id)
+                          const label = `${s.name} (${s.email})`
+                          setStudentSearch(label)
+                          setStudentLabel(label)
+                          setStudentResults([])
+                        }}
+                        className={`w-full text-left px-3 py-2 hover:bg-blue-50 ${studentId === s.id ? 'bg-blue-100' : ''}`}
+                      >
+                        <div className="text-sm font-medium">{s.name}</div>
+                        <div className="text-xs text-gray-500">{s.email}</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {studentId != null && studentLabel && (
+                  <div className="text-xs text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
+                    Selecionado: {studentLabel}
+                  </div>
+                )}
+                <p className="text-xs text-gray-500">
+                  Cupom só vai funcionar quando o aluno selecionado estiver logado.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex justify-end gap-3 p-6 border-t bg-gray-50">

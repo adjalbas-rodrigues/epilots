@@ -15,7 +15,10 @@ export default function AdminLayout({
 
   useEffect(() => {
     if (!isLoginPage) {
-      const token = localStorage.getItem('admin_token')
+      // auth_token is the canonical key set by apiClient.loginAdmin
+      const token =
+        localStorage.getItem('auth_token') ||
+        localStorage.getItem('admin_token') // legacy fallback
       if (!token) {
         router.push('/admin/auth/login')
       }

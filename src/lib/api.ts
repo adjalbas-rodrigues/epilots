@@ -69,12 +69,13 @@ class ApiClient {
         const status = error.response?.status;
         const data: any = error.response?.data;
 
-        // Se receber 401, limpar token e redirecionar
+        // Se receber 401, limpar token e redirecionar pra login adequado
         if (status === 401) {
           console.log('🔒 Unauthorized - clearing token and redirecting to login');
           this.clearToken();
           if (typeof window !== 'undefined') {
-            window.location.href = '/auth/login';
+            const isAdminPath = window.location.pathname.startsWith('/admin');
+            window.location.href = isAdminPath ? '/admin/auth/login' : '/auth/login';
           }
         }
 

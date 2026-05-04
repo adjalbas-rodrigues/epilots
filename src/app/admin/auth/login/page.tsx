@@ -21,8 +21,9 @@ export default function AdminLoginPage() {
     try {
       const res: any = await apiClient.loginAdmin(email, password)
       if (res.token) {
-        // also keep admin_token for legacy admin layout check
-        localStorage.setItem('admin_token', res.token)
+        // apiClient.loginAdmin already saved to auth_token; admin_token kept
+        // here only to wipe any stale legacy value
+        localStorage.removeItem('admin_token')
         router.push('/admin/home')
       } else {
         setError('Resposta inválida do servidor')

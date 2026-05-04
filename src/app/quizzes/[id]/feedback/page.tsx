@@ -407,6 +407,7 @@ export default function QuizFeedbackPage() {
                                     teacherName={item.video.teacherName}
                                     duration={item.video.duration}
                                     thumbnail={item.video.thumbnail}
+                                    context="course"
                                   />
                                 </div>
                               )}

@@ -19,6 +19,8 @@ interface VdoCipherPlayerFinalProps {
   teacherName?: string
   duration?: number
   thumbnail?: string
+  /** 'lesson' (default) requires access_videos; 'course' requires access_courses */
+  context?: 'lesson' | 'course'
   onClose?: () => void
 }
 
@@ -29,6 +31,7 @@ export default function VdoCipherPlayerFinal({
   teacherName,
   duration,
   thumbnail,
+  context = 'lesson',
   onClose
 }: VdoCipherPlayerFinalProps) {
   // Decode HTML entities in title
@@ -62,10 +65,10 @@ export default function VdoCipherPlayerFinal({
       setLoading(true)
       setError(null)
       
-      // Fetch OTP
+      // Fetch OTP — pass context so backend gates against access_courses (course) or access_videos (lesson)
       const response = await apiClient.request('/videos/get-otp', {
         method: 'POST',
-        data: { videoId }
+        data: { videoId, context }
       })
       
       if (response.otp && response.playbackInfo) {

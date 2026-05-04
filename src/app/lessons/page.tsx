@@ -6,7 +6,9 @@ import Navbar from '@/components/Navbar'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/useToast'
+import { useFeatureGate } from '@/hooks/useFeatureGate'
 import apiClient from '@/lib/api'
+import SubscriptionRequiredModal from '@/components/SubscriptionRequiredModal'
 import { 
   Play, 
   Search, 
@@ -79,6 +81,7 @@ export default function VideoLessonsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalVideos, setTotalVideos] = useState(0)
+  const { gate, handleError, clearGate } = useFeatureGate()
 
   useEffect(() => {
     if (!isAuthenticated && !authLoading) {
@@ -126,7 +129,7 @@ export default function VideoLessonsPage() {
       }
     } catch (error) {
       console.error('Error fetching videos:', error)
-      // Não mostrar erro, apenas setar arrays vazios
+      if (handleError(error)) return
       setVideos([])
       setMatters([])
       setTotalPages(1)
@@ -140,12 +143,13 @@ export default function VideoLessonsPage() {
   const fetchFeaturedVideos = async () => {
     try {
       const response = await apiClient.request('/videos/lessons/featured')
-      
+
       if (response.status === 'success') {
         setFeaturedVideos(response.data || [])
       }
     } catch (error) {
       console.error('Error fetching featured videos:', error)
+      if (handleError(error)) return
       setFeaturedVideos([])
     }
   }
@@ -183,6 +187,21 @@ export default function VideoLessonsPage() {
             <p className="text-white text-lg">Carregando aulas...</p>
           </div>
         </div>
+      </>
+    )
+  }
+
+  if (gate) {
+    return (
+      <>
+        <Navbar isAuthenticated={true} userName={user?.name} />
+        <SubscriptionRequiredModal
+          open
+          onClose={() => { clearGate(); router.push('/auth/account') }}
+          reason={gate.reason}
+          currentPlan={gate.currentPlan}
+          feature={gate.feature || 'access_videos'}
+        />
       </>
     )
   }

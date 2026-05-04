@@ -7,7 +7,9 @@ import Navbar from '@/components/Navbar'
 import Breadcrumbs from '@/components/Breadcrumbs'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/useToast'
+import { useFeatureGate } from '@/hooks/useFeatureGate'
 import apiClient from '@/lib/api'
+import SubscriptionRequiredModal from '@/components/SubscriptionRequiredModal'
 import { 
   Plus,
   Calendar,
@@ -58,6 +60,7 @@ export default function QuizzesPage() {
   const [loading, setLoading] = useState(true)
   const [quizHistory, setQuizHistory] = useState<QuizHistory | null>(null)
   const [statistics, setStatistics] = useState<any>(null)
+  const { gate, handleError, clearGate } = useFeatureGate()
 
   useEffect(() => {
     if (!user) {
@@ -75,6 +78,7 @@ export default function QuizzesPage() {
       setQuizHistory(response.data)
     } catch (error) {
       console.error('Error fetching quiz history:', error)
+      if (handleError(error)) return
       showToast('Erro ao carregar histórico de quizzes', 'error')
     } finally {
       setLoading(false)
@@ -144,6 +148,21 @@ export default function QuizzesPage() {
             <p className="text-gray-600">Carregando quizzes...</p>
           </div>
         </div>
+      </>
+    )
+  }
+
+  if (gate) {
+    return (
+      <>
+        <Navbar isAuthenticated={true} userName={user?.name} />
+        <SubscriptionRequiredModal
+          open
+          onClose={() => { clearGate(); router.push('/auth/account') }}
+          reason={gate.reason}
+          currentPlan={gate.currentPlan}
+          feature={gate.feature}
+        />
       </>
     )
   }

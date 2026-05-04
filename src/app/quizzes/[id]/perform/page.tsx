@@ -641,6 +641,7 @@ export default function QuizPerformPage() {
                           teacherName={feedbacks[currentQuestion.id].video.teacherName}
                           duration={feedbacks[currentQuestion.id].video.duration}
                           thumbnail={feedbacks[currentQuestion.id].video.thumbnail}
+                          context="course"
                         />
                       </div>
                     )}

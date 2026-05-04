@@ -530,6 +530,8 @@ class ApiClient {
     amount_cents: number;
     payment_method?: string;
     notes?: string;
+    start_date?: string;
+    end_date?: string;
   }) {
     return this.request('/admin/payments', { method: 'POST', data });
   }

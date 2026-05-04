@@ -2,15 +2,17 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  Home, 
-  Users, 
-  GraduationCap, 
-  BookOpen, 
+import {
+  Home,
+  Users,
+  GraduationCap,
+  BookOpen,
   FileQuestion,
   BarChart3,
   LogOut,
-  Shield
+  Shield,
+  CreditCard,
+  Tag
 } from 'lucide-react'
 
 export default function AdminSidebar() {
@@ -19,6 +21,8 @@ export default function AdminSidebar() {
   const menuItems = [
     { href: '/admin/home', label: 'Dashboard', icon: Home },
     { href: '/admin/students', label: 'Alunos', icon: GraduationCap },
+    { href: '/admin/subscriptions', label: 'Assinaturas', icon: CreditCard },
+    { href: '/admin/coupons', label: 'Cupons', icon: Tag },
     { href: '/admin/users', label: 'Usuários', icon: Users },
     { href: '/admin/subjects', label: 'Matérias', icon: BookOpen },
     { href: '/admin/questions', label: 'Questões', icon: FileQuestion },

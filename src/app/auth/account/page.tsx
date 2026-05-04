@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Breadcrumbs from '@/components/Breadcrumbs'
+import SubscriptionBanner from '@/components/SubscriptionBanner'
 import { 
   BookOpen, 
   Clock,
@@ -132,6 +133,9 @@ export default function StudentDashboard() {
       <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-gray-50">
         {/* Main Content */}
         <div className="container mx-auto px-4 py-8">
+          {/* Subscription Banner */}
+          <SubscriptionBanner />
+
           {/* Welcome Message */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-800 mb-2">

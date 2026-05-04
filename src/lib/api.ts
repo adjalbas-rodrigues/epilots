@@ -253,6 +253,38 @@ class ApiClient {
     return this.request('/statistics/student');
   }
 
+  // Subscription (student-side)
+  async getMySubscription() {
+    return this.request('/student/subscription');
+  }
+
+  // Payments (student-side)
+  async getPlans() {
+    return this.request('/payments/plans');
+  }
+
+  async createPixCharge(plan: string, couponCode?: string | null) {
+    return this.request('/payments/charge', {
+      method: 'POST',
+      data: { plan, coupon_code: couponCode || undefined },
+    });
+  }
+
+  async createPixSubscription(plan: string) {
+    return this.request('/payments/subscribe', {
+      method: 'POST',
+      data: { plan },
+    });
+  }
+
+  async getPaymentStatus(correlationId: string) {
+    return this.request(`/payments/status/${correlationId}`);
+  }
+
+  async getMyPayments() {
+    return this.request('/payments/me');
+  }
+
   async getSubjectStatistics(subjectId: number) {
     return this.request(`/statistics/subject/${subjectId}`);
   }
@@ -357,6 +389,105 @@ class ApiClient {
   async deleteQuestion(id: number) {
     return this.request(`/admin/questions/${id}`, {
       method: 'DELETE',
+    });
+  }
+
+  // Subscription endpoints (admin)
+  async getSubscriptions(params?: { page?: number; limit?: number; search?: string; status?: string; plan?: string }) {
+    const query = new URLSearchParams();
+    if (params?.page) query.append('page', params.page.toString());
+    if (params?.limit) query.append('limit', params.limit.toString());
+    if (params?.search) query.append('search', params.search);
+    if (params?.status) query.append('status', params.status);
+    if (params?.plan) query.append('plan', params.plan);
+    const qs = query.toString();
+    return this.request(`/admin/subscriptions${qs ? `?${qs}` : ''}`);
+  }
+
+  async getSubscriptionStats() {
+    return this.request('/admin/subscriptions/stats');
+  }
+
+  async getStudentSubscriptions(studentId: number) {
+    return this.request(`/admin/subscriptions/student/${studentId}`);
+  }
+
+  async createSubscription(data: {
+    student_id: number;
+    plan?: string;
+    amount?: number;
+    payment_method?: string;
+    start_date?: string;
+    end_date?: string;
+    auto_renew?: boolean;
+    notes?: string;
+  }) {
+    return this.request('/admin/subscriptions', {
+      method: 'POST',
+      data,
+    });
+  }
+
+  async updateSubscription(id: number, data: any) {
+    return this.request(`/admin/subscriptions/${id}`, {
+      method: 'PUT',
+      data,
+    });
+  }
+
+  async renewSubscription(id: number, data?: { plan?: string; amount?: number; payment_method?: string }) {
+    return this.request(`/admin/subscriptions/${id}/renew`, {
+      method: 'POST',
+      data: data || {},
+    });
+  }
+
+  async cancelSubscription(id: number) {
+    return this.request(`/admin/subscriptions/${id}/cancel`, {
+      method: 'POST',
+    });
+  }
+
+  async deleteSubscription(id: number) {
+    return this.request(`/admin/subscriptions/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Coupons (admin)
+  async getCoupons() {
+    return this.request('/admin/coupons');
+  }
+
+  async createCoupon(data: {
+    code: string;
+    discount_type: 'percent' | 'fixed';
+    discount_value: number;
+    max_uses?: number | null;
+    valid_from?: string | null;
+    valid_until?: string | null;
+    is_active?: boolean;
+  }) {
+    return this.request('/admin/coupons', { method: 'POST', data });
+  }
+
+  async updateCoupon(id: number, data: any) {
+    return this.request(`/admin/coupons/${id}`, { method: 'PUT', data });
+  }
+
+  async deleteCoupon(id: number) {
+    return this.request(`/admin/coupons/${id}`, { method: 'DELETE' });
+  }
+
+  async toggleCoupon(id: number) {
+    return this.request(`/admin/coupons/${id}/toggle`, { method: 'POST' });
+  }
+
+  // Coupons (student)
+  async validateCoupon(code: string, plan: string) {
+    return this.request('/payments/coupon/validate', {
+      method: 'POST',
+      data: { code, plan },
     });
   }
 }

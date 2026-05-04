@@ -1,241 +1,217 @@
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { 
-  Search, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  Shield,
-  User,
-  Mail,
-  Calendar
+import { useEffect, useState, useCallback } from 'react'
+import {
+  Search, Plus, Trash2, Shield, User, Mail, Loader2, X
 } from 'lucide-react'
+import apiClient from '@/lib/api'
+
+interface UserRow {
+  id: number
+  name: string
+  email: string
+  role: 'admin' | 'moderator'
+  is_active: boolean
+  created_at: string
+}
+
+const ROLE_CONFIG: Record<string, { color: string; label: string }> = {
+  admin: { color: 'bg-red-100 text-red-800', label: 'Administrador' },
+  moderator: { color: 'bg-green-100 text-green-800', label: 'Moderador' }
+}
 
 export default function AdminUsersPage() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [roleFilter, setRoleFilter] = useState<string>('all')
-  const [users] = useState<any[]>([])
+  const [users, setUsers] = useState<UserRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [showModal, setShowModal] = useState(false)
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter
-    return matchesSearch && matchesRole
-  })
-
-  const handleDelete = (userId: string) => {
-    if (confirm('Tem certeza que deseja excluir este usuário?')) {
-      console.log('Delete user:', userId)
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res: any = await apiClient.getUsers()
+      setUsers(res.data || [])
+    } catch (e) {
+      console.error('Erro ao carregar usuários:', e)
+    } finally {
+      setLoading(false)
     }
-  }
+  }, [])
 
-  const getRoleBadge = (role: string) => {
-    const roleConfig = {
-      admin: { color: 'bg-red-100 text-red-800', label: 'Administrador' },
-      operator: { color: 'bg-blue-100 text-blue-800', label: 'Operador' },
-      moderator: { color: 'bg-green-100 text-green-800', label: 'Moderador' },
-      subscriber: { color: 'bg-gray-100 text-gray-800', label: 'Assinante' },
-    }
-    return roleConfig[role as keyof typeof roleConfig] || roleConfig.subscriber
-  }
+  useEffect(() => { load() }, [load])
+
+  const filtered = users.filter(u =>
+    !search ||
+    u.name.toLowerCase().includes(search.toLowerCase()) ||
+    u.email.toLowerCase().includes(search.toLowerCase())
+  )
 
   return (
     <div className="p-8">
-      <header className="mb-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">Gerenciar Usuários</h1>
-            <p className="text-gray-600 mt-2">Gerencie os usuários administrativos do sistema</p>
-          </div>
-          <Link
-            href="/admin/users/create"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Novo Usuário
-          </Link>
+      <header className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800">Usuários</h1>
+          <p className="text-gray-600 mt-2">Administradores e moderadores do sistema</p>
         </div>
+        <button onClick={() => setShowModal(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+          <Plus className="w-5 h-5 mr-2" />
+          Novo Usuário
+        </button>
       </header>
 
-      {/* Stats */}
-      <div className="grid md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-2xl font-bold text-gray-800">{users.length}</p>
-              <p className="text-sm text-gray-600">Total de Usuários</p>
-            </div>
-            <User className="w-10 h-10 text-blue-600" />
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-2xl font-bold text-gray-800">
-                {users.filter(u => u.role === 'admin').length}
-              </p>
-              <p className="text-sm text-gray-600">Administradores</p>
-            </div>
-            <Shield className="w-10 h-10 text-red-600" />
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-2xl font-bold text-gray-800">
-                {users.filter(u => u.role === 'operator').length}
-              </p>
-              <p className="text-sm text-gray-600">Operadores</p>
-            </div>
-            <User className="w-10 h-10 text-blue-600" />
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-2xl font-bold text-gray-800">
-                {users.filter(u => u.role === 'moderator').length}
-              </p>
-              <p className="text-sm text-gray-600">Moderadores</p>
-            </div>
-            <User className="w-10 h-10 text-green-600" />
-          </div>
-        </div>
+      <div className="grid md:grid-cols-3 gap-4 mb-6">
+        <StatCard count={users.length} label="Total" icon={<User className="w-10 h-10 text-blue-600" />} />
+        <StatCard count={users.filter(u => u.role === 'admin').length} label="Administradores"
+          icon={<Shield className="w-10 h-10 text-red-600" />} />
+        <StatCard count={users.filter(u => u.role === 'moderator').length} label="Moderadores"
+          icon={<User className="w-10 h-10 text-green-600" />} />
       </div>
 
-      {/* Filters */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="grid md:grid-cols-3 gap-4">
-          <div className="md:col-span-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Buscar por nome ou email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-          
-          <div>
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">Todos os Papéis</option>
-              <option value="admin">Administrador</option>
-              <option value="operator">Operador</option>
-              <option value="moderator">Moderador</option>
-              <option value="subscriber">Assinante</option>
-            </select>
-          </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input type="text" placeholder="Buscar por nome ou email..." value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
         </div>
       </div>
 
-      {/* Users Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">Nenhum usuário encontrado</div>
+        ) : (
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 text-xs font-medium text-gray-500 uppercase">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Usuário
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Papel
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Criado em
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ações
-                </th>
+                <th className="px-6 py-3 text-left">Usuário</th>
+                <th className="px-6 py-3 text-left">Email</th>
+                <th className="px-6 py-3 text-left">Papel</th>
+                <th className="px-6 py-3 text-left">Criado em</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredUsers.map((user) => {
-                const roleConfig = getRoleBadge(user.role)
-                
+            <tbody className="divide-y divide-gray-200">
+              {filtered.map(u => {
+                const cfg = ROLE_CONFIG[u.role] || ROLE_CONFIG.moderator
                 return (
-                  <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <tr key={u.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
                       <div className="flex items-center">
                         <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
                           <User className="w-5 h-5 text-gray-600" />
                         </div>
-                        <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                        </div>
+                        <div className="ml-3 text-sm font-medium text-gray-900">{u.name}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Mail className="w-4 h-4 mr-2" />
-                        {user.email}
-                      </div>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      <div className="flex items-center"><Mail className="w-4 h-4 mr-2" />{u.email}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${roleConfig.color}`}>
-                        {roleConfig.label}
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${cfg.color}`}>
+                        {cfg.label}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        {new Date(user.created).toLocaleDateString('pt-BR')}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-2">
-                        <Link
-                          href={`/admin/users/${user.id}/edit`}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="Editar"
-                        >
-                          <Edit2 className="w-5 h-5" />
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(user.id.toString())}
-                          className="text-red-600 hover:text-red-900"
-                          title="Excluir"
-                          disabled={user.role === 'admin' && users.filter(u => u.role === 'admin').length === 1}
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {new Date(u.created_at).toLocaleDateString('pt-BR')}
                     </td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
-        </div>
+        )}
+      </div>
 
-        {/* Pagination */}
-        <div className="bg-gray-50 px-6 py-3 flex items-center justify-between">
-          <div className="text-sm text-gray-700">
-            Mostrando <span className="font-medium">1</span> a <span className="font-medium">{filteredUsers.length}</span> de{' '}
-            <span className="font-medium">{filteredUsers.length}</span> resultados
+      {showModal && (
+        <CreateUserModal
+          onClose={() => setShowModal(false)}
+          onSaved={async () => { setShowModal(false); await load() }}
+        />
+      )}
+    </div>
+  )
+}
+
+function StatCard({ count, label, icon }: { count: number; label: string; icon: React.ReactNode }) {
+  return (
+    <div className="bg-white rounded-lg shadow-md p-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-2xl font-bold text-gray-800">{count}</p>
+          <p className="text-sm text-gray-600">{label}</p>
+        </div>
+        {icon}
+      </div>
+    </div>
+  )
+}
+
+function CreateUserModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => Promise<void> }) {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [role, setRole] = useState<'admin' | 'moderator'>('moderator')
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async () => {
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      alert('Preencha todos os campos')
+      return
+    }
+    setSaving(true)
+    try {
+      await apiClient.createUser({ name: name.trim(), email: email.trim(), password, role })
+      await onSaved()
+    } catch (e: any) {
+      alert(e?.message || 'Erro ao criar usuário')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-6 border-b">
+          <h2 className="text-xl font-bold text-gray-800">Novo Usuário</h2>
+          <button onClick={onClose} aria-label="Fechar"><X className="w-5 h-5 text-gray-400" /></button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
           </div>
-          <div className="flex space-x-2">
-            <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-100">
-              Anterior
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded text-sm bg-blue-600 text-white">
-              1
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-100">
-              Próximo
-            </button>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Papel</label>
+            <select value={role} onChange={(e) => setRole(e.target.value as any)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+              <option value="moderator">Moderador</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+        </div>
+        <div className="flex justify-end gap-3 p-6 border-t bg-gray-50">
+          <button onClick={onClose} className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg">Cancelar</button>
+          <button onClick={handleSave} disabled={saving}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
+            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+            Criar
+          </button>
         </div>
       </div>
     </div>

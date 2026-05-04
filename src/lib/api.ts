@@ -454,6 +454,89 @@ class ApiClient {
     });
   }
 
+  // Users (admin)
+  async getUsers() {
+    return this.request('/admin/users');
+  }
+
+  async createUser(data: { name: string; email: string; password: string; role: string }) {
+    return this.request('/admin/users', { method: 'POST', data });
+  }
+
+  // Subjects (admin)
+  async getAdminSubjects() {
+    return this.request('/admin/subjects');
+  }
+
+  async createSubject(data: { name: string; short_name?: string; color?: string; text_color?: string }) {
+    return this.request('/admin/subjects', { method: 'POST', data });
+  }
+
+  async updateSubject(id: number, data: any) {
+    return this.request(`/admin/subjects/${id}`, { method: 'PUT', data });
+  }
+
+  async createTopic(subjectId: number, name: string) {
+    return this.request(`/admin/subjects/${subjectId}/topics`, {
+      method: 'POST',
+      data: { name }
+    });
+  }
+
+  async updateTopic(id: number, name: string) {
+    return this.request(`/admin/topics/${id}`, { method: 'PUT', data: { name } });
+  }
+
+  async deleteTopic(id: number) {
+    return this.request(`/admin/topics/${id}`, { method: 'DELETE' });
+  }
+
+  // Payment admin
+  async getAdminPayments(params?: { page?: number; limit?: number; status?: string; search?: string }) {
+    const q = new URLSearchParams();
+    if (params?.page) q.append('page', params.page.toString());
+    if (params?.limit) q.append('limit', params.limit.toString());
+    if (params?.status) q.append('status', params.status);
+    if (params?.search) q.append('search', params.search);
+    const qs = q.toString();
+    return this.request(`/admin/payments${qs ? `?${qs}` : ''}`);
+  }
+
+  async approvePayment(id: number) {
+    return this.request(`/admin/payments/${id}/approve`, { method: 'POST' });
+  }
+
+  async createManualPayment(data: {
+    student_id: number;
+    plan: string;
+    amount_cents: number;
+    payment_method?: string;
+    notes?: string;
+  }) {
+    return this.request('/admin/payments', { method: 'POST', data });
+  }
+
+  // Plans (admin)
+  async getPlansAdmin() {
+    return this.request('/admin/plans');
+  }
+
+  async createPlan(data: any) {
+    return this.request('/admin/plans', { method: 'POST', data });
+  }
+
+  async updatePlan(id: number, data: any) {
+    return this.request(`/admin/plans/${id}`, { method: 'PUT', data });
+  }
+
+  async deletePlan(id: number) {
+    return this.request(`/admin/plans/${id}`, { method: 'DELETE' });
+  }
+
+  async togglePlan(id: number) {
+    return this.request(`/admin/plans/${id}/toggle`, { method: 'POST' });
+  }
+
   // Coupons (admin)
   async getCoupons() {
     return this.request('/admin/coupons');

@@ -3,14 +3,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { LogIn, Mail, Lock, Shield } from 'lucide-react'
+import { LogIn, Mail, Lock, Shield, Loader2 } from 'lucide-react'
+import apiClient from '@/lib/api'
 
 export default function AdminLoginPage() {
   const router = useRouter()
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  })
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -20,19 +19,16 @@ export default function AdminLoginPage() {
     setLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Check mock credentials
-      if (formData.email === 'admin@epilots.com' && formData.password === 'admin123') {
-        // Store auth token in localStorage (mock)
-        localStorage.setItem('admin_token', 'mock_token_admin_1')
+      const res: any = await apiClient.loginAdmin(email, password)
+      if (res.token) {
+        // also keep admin_token for legacy admin layout check
+        localStorage.setItem('admin_token', res.token)
         router.push('/admin/home')
       } else {
-        setError('Email ou senha inválidos')
+        setError('Resposta inválida do servidor')
       }
-    } catch (err) {
-      setError('Erro ao fazer login. Tente novamente.')
+    } catch (err: any) {
+      setError(err?.message || 'Email ou senha inválidos')
     } finally {
       setLoading(false)
     }
@@ -64,10 +60,9 @@ export default function AdminLoginPage() {
                 <input
                   type="email"
                   id="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="admin@epilots.com"
                   required
                 />
               </div>
@@ -82,8 +77,8 @@ export default function AdminLoginPage() {
                 <input
                   type="password"
                   id="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="••••••••"
                   required
@@ -97,7 +92,7 @@ export default function AdminLoginPage() {
               className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <span>Entrando...</span>
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
                   <LogIn className="w-5 h-5 mr-2" />
@@ -111,12 +106,6 @@ export default function AdminLoginPage() {
             <Link href="/" className="text-sm text-gray-600 hover:text-gray-700">
               ← Voltar para página inicial
             </Link>
-          </div>
-
-          <div className="mt-4 p-4 bg-green-50 rounded-lg text-sm text-green-700">
-            <p className="font-semibold">Credenciais de teste:</p>
-            <p>Email: admin@epilots.com</p>
-            <p>Senha: admin123</p>
           </div>
         </div>
       </div>

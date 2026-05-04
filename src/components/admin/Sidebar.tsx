@@ -12,7 +12,9 @@ import {
   LogOut,
   Shield,
   CreditCard,
-  Tag
+  Tag,
+  Package,
+  Banknote
 } from 'lucide-react'
 
 export default function AdminSidebar() {
@@ -22,6 +24,8 @@ export default function AdminSidebar() {
     { href: '/admin/home', label: 'Dashboard', icon: Home },
     { href: '/admin/students', label: 'Alunos', icon: GraduationCap },
     { href: '/admin/subscriptions', label: 'Assinaturas', icon: CreditCard },
+    { href: '/admin/payments', label: 'Pagamentos', icon: Banknote },
+    { href: '/admin/plans', label: 'Planos', icon: Package },
     { href: '/admin/coupons', label: 'Cupons', icon: Tag },
     { href: '/admin/users', label: 'Usuários', icon: Users },
     { href: '/admin/subjects', label: 'Matérias', icon: BookOpen },
@@ -31,6 +35,7 @@ export default function AdminSidebar() {
 
   const handleLogout = () => {
     localStorage.removeItem('admin_token')
+    localStorage.removeItem('auth_token')
     window.location.href = '/admin/auth/login'
   }
 

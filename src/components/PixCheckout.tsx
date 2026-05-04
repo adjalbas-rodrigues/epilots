@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Loader2, Copy, Check, Clock, AlertCircle, ExternalLink } from 'lucide-react'
+import { Loader2, Copy, Check, Clock, AlertCircle } from 'lucide-react'
 import apiClient from '@/lib/api'
 
 interface ChargeResult {
@@ -37,9 +37,11 @@ export default function PixCheckout({ plan, amountCents, couponCode, mode, onPai
     let cancelled = false
     const create = async () => {
       try {
-        const res: any = mode === 'recurring'
-          ? await apiClient.createPixSubscription(plan)
-          : await apiClient.createPixCharge(plan, couponCode || null)
+        // PIX Automático (recorrente) desativado temporariamente — usar sempre one-off
+        // const res: any = mode === 'recurring'
+        //   ? await apiClient.createPixSubscription(plan)
+        //   : await apiClient.createPixCharge(plan, couponCode || null)
+        const res: any = await apiClient.createPixCharge(plan, couponCode || null)
         if (!cancelled) setCharge(res.data)
       } catch (e: any) {
         if (!cancelled) setError(e?.message || 'Erro ao gerar PIX')
@@ -61,10 +63,11 @@ export default function PixCheckout({ plan, amountCents, couponCode, mode, onPai
   }, [charge?.correlation_id, onPaid])
 
   useEffect(() => {
-    if (!charge || paid || mode === 'recurring') return
+    // Sempre poll: modo recorrente desativado por enquanto
+    if (!charge || paid) return
     const interval = setInterval(pollStatus, pollIntervalMs)
     return () => clearInterval(interval)
-  }, [charge, paid, pollStatus, mode, pollIntervalMs])
+  }, [charge, paid, pollStatus, pollIntervalMs])
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -96,11 +99,10 @@ export default function PixCheckout({ plan, amountCents, couponCode, mode, onPai
     <div className="space-y-4">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-900">
-          {mode === 'recurring' ? 'PIX Automático' : 'Pague com PIX'}
+          Pague com PIX
         </h2>
         <p className="text-gray-600 mt-1">
           R$ {charge.amount_brl}
-          {mode === 'recurring' && charge.interval_months ? ` a cada ${charge.interval_months} mês(es)` : ''}
         </p>
       </div>
 
@@ -135,6 +137,7 @@ export default function PixCheckout({ plan, amountCents, couponCode, mode, onPai
         </div>
       )}
 
+      {/* PIX Automático (recorrente) desativado temporariamente
       {mode === 'recurring' && charge.authorization_url && (
         <a
           href={charge.authorization_url}
@@ -148,16 +151,15 @@ export default function PixCheckout({ plan, amountCents, couponCode, mode, onPai
           </span>
         </a>
       )}
+      */}
 
-      {mode === 'one-off' && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3">
-          <Loader2 className="w-5 h-5 text-blue-600 animate-spin flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-900">
-            <p className="font-medium">Aguardando pagamento...</p>
-            <p className="text-blue-700 mt-1">Atualiza automaticamente quando confirmado.</p>
-          </div>
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3">
+        <Loader2 className="w-5 h-5 text-blue-600 animate-spin flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-blue-900">
+          <p className="font-medium">Aguardando pagamento...</p>
+          <p className="text-blue-700 mt-1">Atualiza automaticamente quando confirmado.</p>
         </div>
-      )}
+      </div>
 
       {charge.expires_at && (
         <div className="flex items-center justify-center gap-2 text-sm text-gray-500">

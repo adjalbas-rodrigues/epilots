@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import apiClient from '@/lib/api'
 import {
   Check, X, Loader2, ArrowLeft, CheckCircle2, AlertCircle,
-  FileQuestion, BookOpen, Video, Sparkles, RefreshCw
+  FileQuestion, BookOpen, Video, Sparkles
 } from 'lucide-react'
 
 interface Plan {
@@ -37,7 +37,8 @@ export default function PricingPage() {
   const [plans, setPlans] = useState<Plan[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
-  const [paymentMode, setPaymentMode] = useState<'one-off' | 'recurring'>('recurring')
+  // PIX Automático (recurring) desativado temporariamente — sempre one-off
+  const [paymentMode] = useState<'one-off' | 'recurring'>('one-off')
   const [couponCode, setCouponCode] = useState<string | null>(null)
   const [paid, setPaid] = useState(false)
 
@@ -124,11 +125,11 @@ export default function PricingPage() {
               Escolha seu plano
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Todos os planos com renovação automática via PIX. Cancele quando quiser.
+              Pagamento via PIX. Renove mensalmente para manter o acesso.
             </p>
           </div>
 
-          {/* Mode toggle */}
+          {/* PIX Automático desativado temporariamente — toggle removido
           <div className="flex justify-center mb-8">
             <div className="bg-white rounded-full shadow-md p-1 inline-flex">
               <button
@@ -150,19 +151,7 @@ export default function PricingPage() {
               </button>
             </div>
           </div>
-
-          {paymentMode === 'recurring' && (
-            <div className="max-w-2xl mx-auto mb-8 bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3">
-              <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-blue-900">
-                <p className="font-medium">PIX Automático (Recorrência via Bacen)</p>
-                <p className="text-blue-700 mt-1">
-                  Você autoriza uma vez no app do banco e os próximos pagamentos
-                  rodam sozinhos. Pode cancelar a qualquer momento.
-                </p>
-              </div>
-            </div>
-          )}
+          */}
 
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {plans.map((plan, idx) => {

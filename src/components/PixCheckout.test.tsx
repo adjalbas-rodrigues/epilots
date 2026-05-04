@@ -101,7 +101,8 @@ describe('PixCheckout', () => {
     });
   });
 
-  describe('recurring PIX (PIX Automático)', () => {
+  // PIX Automático (recurring) desativado — testes mantidos como skip pra reativar depois
+  describe.skip('recurring PIX (PIX Automático)', () => {
     it('calls createPixSubscription when mode=recurring', async () => {
       mocks.createPixSubscription.mockResolvedValue({
         data: {

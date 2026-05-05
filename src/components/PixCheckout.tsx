@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Loader2, Copy, Check, Clock, AlertCircle } from 'lucide-react'
+import { Loader2, Copy, Check, Clock, AlertCircle, Tag } from 'lucide-react'
 import apiClient from '@/lib/api'
 
 interface ChargeResult {
@@ -101,9 +101,26 @@ export default function PixCheckout({ plan, amountCents, couponCode, mode, onPai
         <h2 className="text-2xl font-bold text-gray-900">
           Pague com PIX
         </h2>
-        <p className="text-gray-600 mt-1">
-          R$ {charge.amount_brl}
-        </p>
+        {couponCode ? (
+          <div className="mt-2 space-y-1">
+            <div className="flex items-baseline justify-center gap-2">
+              <span className="text-base text-gray-400 line-through">
+                R$ {(amountCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </span>
+              <span className="text-2xl font-bold text-gray-900">
+                R$ {parseFloat(charge.amount_brl).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
+              <Tag className="w-3 h-3" />
+              Cupom <span className="font-mono">{couponCode}</span> aplicado
+            </div>
+          </div>
+        ) : (
+          <p className="text-gray-600 mt-1">
+            R$ {parseFloat(charge.amount_brl).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </p>
+        )}
       </div>
 
       {charge.pix_qr_code && (

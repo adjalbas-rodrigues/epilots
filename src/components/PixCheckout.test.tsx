@@ -93,6 +93,49 @@ describe('PixCheckout', () => {
       await waitFor(() => expect(onPaid).toHaveBeenCalled(), { timeout: 3000 });
     });
 
+    it('shows applied coupon badge with original price strike-through', async () => {
+      mocks.createPixCharge.mockResolvedValue({
+        data: {
+          payment_id: 1,
+          correlation_id: 'corr-1',
+          plan: 'premium',
+          amount_brl: '75.00',
+          pix_qr_code: 'qr',
+          pix_br_code: 'br',
+          expires_at: tomorrow(),
+          status_payment: 'pending'
+        }
+      });
+
+      render(
+        <PixCheckout
+          plan="premium"
+          amountCents={25000}
+          couponCode="FIDIAS70"
+          mode="one-off"
+          onPaid={vi.fn()}
+        />
+      );
+
+      expect(await screen.findByText(/FIDIAS70/i)).toBeInTheDocument();
+      expect(screen.getByText(/cupom aplicado/i)).toBeInTheDocument();
+      expect(screen.getByText(/R\$\s*250,00/)).toBeInTheDocument(); // original
+      expect(screen.getByText(/R\$\s*75,00/)).toBeInTheDocument();  // final
+    });
+
+    it('does not show coupon badge when no coupon applied', async () => {
+      mocks.createPixCharge.mockResolvedValue({
+        data: {
+          payment_id: 1, correlation_id: 'corr-1', plan: 'premium',
+          amount_brl: '250.00', pix_qr_code: 'qr', pix_br_code: 'br',
+          expires_at: tomorrow(), status_payment: 'pending'
+        }
+      });
+      render(<PixCheckout plan="premium" amountCents={25000} mode="one-off" onPaid={vi.fn()} />);
+      await screen.findByText(/Pague com PIX/i);
+      expect(screen.queryByText(/cupom aplicado/i)).not.toBeInTheDocument();
+    });
+
     it('shows error message when API fails', async () => {
       mocks.createPixCharge.mockRejectedValue(new Error('Falha ao gerar PIX'));
       render(<PixCheckout plan="mensal" amountCents={9990} mode="one-off" onPaid={vi.fn()} />);

@@ -39,8 +39,12 @@ const LEGACY_PLAN_LABELS: Record<string, string> = {
   premium: 'Premium'
 }
 
-const planDisplayName = (sub: Subscription): string =>
-  sub.plan_name || LEGACY_PLAN_LABELS[sub.plan] || sub.plan
+const planDisplayName = (sub: Subscription): string => {
+  const name = sub.plan_name || LEGACY_PLAN_LABELS[sub.plan] || sub.plan
+  // Avoid duplication: API may return name as "Plano Premium"; we already
+  // prefix "Plano " in the banner copy, so strip it here.
+  return name.replace(/^Plano\s+/i, '')
+}
 
 export default function SubscriptionBanner() {
   const [info, setInfo] = useState<SubscriptionInfo | null>(null)

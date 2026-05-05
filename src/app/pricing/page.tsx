@@ -110,6 +110,13 @@ export default function PricingPage() {
               <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
                 <PixCheckout
                   plan={selectedPlan.plan}
+                  planName={selectedPlan.name}
+                  planDurationDays={selectedPlan.duration_days}
+                  planFeatures={{
+                    questions: !!selectedPlan.access_questions,
+                    courses: !!selectedPlan.access_courses,
+                    videos: !!selectedPlan.access_videos
+                  }}
                   amountCents={selectedPlan.amount_cents}
                   couponCode={couponCode}
                   mode={paymentMode}

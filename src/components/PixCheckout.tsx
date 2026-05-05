@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Loader2, Copy, Check, Clock, AlertCircle, Tag } from 'lucide-react'
+import { Loader2, Copy, Check, Clock, AlertCircle, Tag, FileQuestion, BookOpen, Video, Calendar } from 'lucide-react'
 import apiClient from '@/lib/api'
 
 interface ChargeResult {
@@ -20,6 +20,9 @@ interface ChargeResult {
 
 interface Props {
   plan: string
+  planName?: string
+  planDurationDays?: number
+  planFeatures?: { questions: boolean; courses: boolean; videos: boolean }
   amountCents: number
   couponCode?: string | null
   mode: 'one-off' | 'recurring'
@@ -27,7 +30,10 @@ interface Props {
   pollIntervalMs?: number
 }
 
-export default function PixCheckout({ plan, amountCents, couponCode, mode, onPaid, pollIntervalMs = 5000 }: Props) {
+export default function PixCheckout({
+  plan, planName, planDurationDays, planFeatures,
+  amountCents, couponCode, mode, onPaid, pollIntervalMs = 5000
+}: Props) {
   const [charge, setCharge] = useState<ChargeResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -95,31 +101,82 @@ export default function PixCheckout({ plan, amountCents, couponCode, mode, onPai
     )
   }
 
+  const finalBRL = parseFloat(charge.amount_brl).toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+  const originalBRL = (amountCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      {/* Order summary */}
+      {planName && (
+        <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-4">
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Plano</p>
+              <h3 className="text-lg font-bold text-gray-900">{planName}</h3>
+            </div>
+            {planDurationDays != null && (
+              <div className="flex items-center gap-1 text-xs text-gray-600 bg-white border border-gray-200 rounded-full px-3 py-1">
+                <Calendar className="w-3 h-3" />
+                {planDurationDays} dias
+              </div>
+            )}
+          </div>
+
+          {planFeatures && (
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {planFeatures.questions && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-800 rounded-full text-xs">
+                  <FileQuestion className="w-3 h-3" /> Questões
+                </span>
+              )}
+              {planFeatures.courses && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-50 text-purple-800 rounded-full text-xs">
+                  <BookOpen className="w-3 h-3" /> Curso
+                </span>
+              )}
+              {planFeatures.videos && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-800 rounded-full text-xs">
+                  <Video className="w-3 h-3" /> Vídeos
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className="border-t border-gray-200 pt-3 flex items-end justify-between">
+            <div>
+              {couponCode && (
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
+                  <Tag className="w-3 h-3" />
+                  <span className="font-mono">{couponCode}</span>
+                </div>
+              )}
+            </div>
+            <div className="text-right">
+              {couponCode && (
+                <div className="text-sm text-gray-400 line-through">R$ {originalBRL}</div>
+              )}
+              <div className="text-2xl font-bold text-gray-900">R$ {finalBRL}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900">
-          Pague com PIX
-        </h2>
-        {couponCode ? (
+        <h2 className="text-xl font-bold text-gray-900">Pague com PIX</h2>
+        {!planName && couponCode && (
           <div className="mt-2 space-y-1">
             <div className="flex items-baseline justify-center gap-2">
-              <span className="text-base text-gray-400 line-through">
-                R$ {(amountCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </span>
-              <span className="text-2xl font-bold text-gray-900">
-                R$ {parseFloat(charge.amount_brl).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </span>
+              <span className="text-base text-gray-400 line-through">R$ {originalBRL}</span>
+              <span className="text-2xl font-bold text-gray-900">R$ {finalBRL}</span>
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
               <Tag className="w-3 h-3" />
               Cupom <span className="font-mono">{couponCode}</span> aplicado
             </div>
           </div>
-        ) : (
-          <p className="text-gray-600 mt-1">
-            R$ {parseFloat(charge.amount_brl).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </p>
+        )}
+        {!planName && !couponCode && (
+          <p className="text-gray-600 mt-1">R$ {finalBRL}</p>
         )}
       </div>
 

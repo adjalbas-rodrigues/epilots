@@ -93,6 +93,34 @@ describe('PixCheckout', () => {
       await waitFor(() => expect(onPaid).toHaveBeenCalled(), { timeout: 3000 });
     });
 
+    it('shows plan name and feature list', async () => {
+      mocks.createPixCharge.mockResolvedValue({
+        data: {
+          payment_id: 1, correlation_id: 'corr-1', plan: 'premium',
+          amount_brl: '250.00', pix_qr_code: 'qr', pix_br_code: 'br',
+          expires_at: tomorrow(), status_payment: 'pending'
+        }
+      });
+
+      render(
+        <PixCheckout
+          plan="premium"
+          planName="Plano Premium"
+          planDurationDays={30}
+          planFeatures={{ questions: true, courses: true, videos: true }}
+          amountCents={25000}
+          mode="one-off"
+          onPaid={vi.fn()}
+        />
+      );
+
+      expect(await screen.findByText(/plano premium/i)).toBeInTheDocument();
+      expect(screen.getByText(/30 dias/i)).toBeInTheDocument();
+      expect(screen.getByText(/questões/i)).toBeInTheDocument();
+      expect(screen.getByText(/curso/i)).toBeInTheDocument();
+      expect(screen.getByText(/vídeo/i)).toBeInTheDocument();
+    });
+
     it('shows applied coupon badge with original price strike-through', async () => {
       mocks.createPixCharge.mockResolvedValue({
         data: {

@@ -15,6 +15,7 @@ import apiClient from '@/lib/api'
 interface Subscription {
   id: number
   plan: string
+  plan_name?: string
   status: 'active' | 'expired' | 'cancelled' | 'pending'
   end_date: string
   amount: number | null
@@ -26,13 +27,20 @@ interface SubscriptionInfo {
   daysRemaining: number | null
 }
 
-const PLAN_LABELS: Record<string, string> = {
+// Fallback labels for legacy plan codes (mensal/trimestral/...)
+const LEGACY_PLAN_LABELS: Record<string, string> = {
   mensal: 'Mensal',
   trimestral: 'Trimestral',
   semestral: 'Semestral',
   anual: 'Anual',
-  custom: 'Personalizado'
+  custom: 'Personalizado',
+  questoes: 'Questões',
+  completo: 'Completo',
+  premium: 'Premium'
 }
+
+const planDisplayName = (sub: Subscription): string =>
+  sub.plan_name || LEGACY_PLAN_LABELS[sub.plan] || sub.plan
 
 export default function SubscriptionBanner() {
   const [info, setInfo] = useState<SubscriptionInfo | null>(null)
@@ -85,7 +93,7 @@ export default function SubscriptionBanner() {
         title={isExpired ? 'Sua assinatura expirou' : 'Sua assinatura está cancelada'}
         description={
           isExpired
-            ? `Sua assinatura ${PLAN_LABELS[subscription.plan]} venceu em ${formatDate(subscription.end_date)}. Renove para manter o acesso completo.`
+            ? `Sua assinatura ${planDisplayName(subscription)} venceu em ${formatDate(subscription.end_date)}. Renove para manter o acesso completo.`
             : 'Renove sua assinatura para voltar a ter acesso completo à plataforma.'
         }
         ctaLabel="Renovar agora"
@@ -105,7 +113,7 @@ export default function SubscriptionBanner() {
             ? 'Sua assinatura vence hoje'
             : `Sua assinatura vence em ${daysRemaining} dia${daysRemaining > 1 ? 's' : ''}`
         }
-        description={`Plano ${PLAN_LABELS[subscription.plan]} válido até ${formatDate(subscription.end_date)}. Renove antes do vencimento para não perder o acesso.`}
+        description={`Plano ${planDisplayName(subscription)} válido até ${formatDate(subscription.end_date)}. Renove antes do vencimento para não perder o acesso.`}
         ctaLabel="Renovar"
         ctaHref="/pricing"
         onDismiss={() => setDismissed(true)}
@@ -118,7 +126,7 @@ export default function SubscriptionBanner() {
     <BannerCard
       variant="success"
       icon={<CheckCircle2 className="w-6 h-6" />}
-      title={`Plano ${PLAN_LABELS[subscription.plan]} ativo`}
+      title={`Plano ${planDisplayName(subscription)} ativo`}
       description={`Acesso liberado até ${formatDate(subscription.end_date)}${daysRemaining !== null ? ` (${daysRemaining} dias restantes)` : ''}.`}
       onDismiss={() => setDismissed(true)}
     />

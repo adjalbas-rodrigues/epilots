@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Lock, Sparkles, X, ArrowRight, FileQuestion, BookOpen, Video } from 'lucide-react'
+import { Lock, Sparkles, X, ArrowRight, FileQuestion, BookOpen, Video, FileDown } from 'lucide-react'
 
 type Reason = 'SUBSCRIPTION_REQUIRED' | 'FEATURE_NOT_IN_PLAN'
 
@@ -16,7 +16,8 @@ interface Props {
 const FEATURE_LABELS: Record<string, { label: string; icon: any }> = {
   access_questions: { label: 'questões e simulados', icon: FileQuestion },
   access_courses:   { label: 'curso de exercícios',  icon: BookOpen },
-  access_videos:    { label: 'aulas em vídeo',       icon: Video }
+  access_videos:    { label: 'aulas em vídeo',       icon: Video },
+  access_materials: { label: 'materiais para download', icon: FileDown },
 }
 
 export default function SubscriptionRequiredModal({

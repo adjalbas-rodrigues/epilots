@@ -8,6 +8,7 @@ import {
   GraduationCap,
   BookOpen,
   FileQuestion,
+  FileDown,
   BarChart3,
   LogOut,
   Shield,
@@ -30,6 +31,7 @@ export default function AdminSidebar() {
     { href: '/admin/users', label: 'Usuários', icon: Users },
     { href: '/admin/subjects', label: 'Matérias', icon: BookOpen },
     { href: '/admin/questions', label: 'Questões', icon: FileQuestion },
+    { href: '/admin/materials', label: 'Materiais', icon: FileDown },
     { href: '/admin/statistics', label: 'Estatísticas', icon: BarChart3 },
   ]
 

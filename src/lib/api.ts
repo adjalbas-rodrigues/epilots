@@ -131,6 +131,25 @@ class ApiClient {
     }
   }
 
+  async getBlob(endpoint: string): Promise<Blob> {
+    const response = await this.axiosInstance({
+      url: endpoint,
+      method: 'GET',
+      responseType: 'blob',
+    });
+    return response.data;
+  }
+
+  async postFormData<T = any>(endpoint: string, formData: FormData): Promise<ApiResponse<T>> {
+    const response = await this.axiosInstance({
+      url: endpoint,
+      method: 'POST',
+      data: formData,
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  }
+
   // Auth endpoints
   async loginStudent(email: string, password: string) {
     const response = await this.request<{ token: string; student: any }>('/auth/student/login', {
@@ -598,6 +617,39 @@ class ApiClient {
 
   async getMyPersonalCoupon() {
     return this.request('/payments/coupon/mine');
+  }
+
+  // Materials (student)
+  async getMaterials() {
+    return this.request('/materials');
+  }
+
+  async downloadMaterial(id: number): Promise<Blob> {
+    return this.getBlob(`/materials/${id}/download`);
+  }
+
+  // Materials (admin)
+  async getAdminMaterials(params?: Record<string, any>) {
+    const q = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        if (v != null) q.append(k, String(v));
+      });
+    }
+    const qs = q.toString();
+    return this.request(`/admin/materials${qs ? `?${qs}` : ''}`);
+  }
+
+  async uploadMaterial(formData: FormData) {
+    return this.postFormData('/admin/materials', formData);
+  }
+
+  async updateMaterial(id: number, data: any) {
+    return this.request(`/admin/materials/${id}`, { method: 'PUT', data });
+  }
+
+  async deleteMaterial(id: number) {
+    return this.request(`/admin/materials/${id}`, { method: 'DELETE' });
   }
 }
 

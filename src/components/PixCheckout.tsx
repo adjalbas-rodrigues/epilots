@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Loader2, Copy, Check, Clock, AlertCircle, Tag, FileQuestion, BookOpen, Video, Calendar } from 'lucide-react'
+import { Loader2, Copy, Check, Clock, AlertCircle, Tag, FileQuestion, BookOpen, Video, FileDown, Calendar } from 'lucide-react'
 import apiClient from '@/lib/api'
 
 interface ChargeResult {
@@ -22,7 +22,7 @@ interface Props {
   plan: string
   planName?: string
   planDurationDays?: number
-  planFeatures?: { questions: boolean; courses: boolean; videos: boolean }
+  planFeatures?: { questions: boolean; courses: boolean; videos: boolean; materials: boolean }
   amountCents: number
   couponCode?: string | null
   mode: 'one-off' | 'recurring'
@@ -137,6 +137,11 @@ export default function PixCheckout({
               {planFeatures.videos && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-800 rounded-full text-xs">
                   <Video className="w-3 h-3" /> Vídeos
+                </span>
+              )}
+              {planFeatures.materials && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-800 rounded-full text-xs">
+                  <FileDown className="w-3 h-3" /> Materiais
                 </span>
               )}
             </div>

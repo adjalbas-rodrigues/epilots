@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import { 
-  Home, 
-  BookOpen, 
-  BarChart3, 
+import {
+  Home,
+  BookOpen,
+  BarChart3,
   RefreshCw,
   Menu,
   X,
@@ -19,6 +19,7 @@ import {
   Search,
   Plus,
   Video,
+  FileDown,
   FileText,
   Trophy,
   Target,
@@ -58,24 +59,29 @@ export default function Navbar({ isAuthenticated = false, userName = 'Aluno' }: 
   }
 
   const navItems = [
-    { 
-      href: '/auth/account', 
-      label: 'Início', 
+    {
+      href: '/auth/account',
+      label: 'Início',
       icon: Home,
     },
-    { 
-      href: '/quizzes', 
-      label: 'Quests', 
+    {
+      href: '/quizzes',
+      label: 'Quests',
       icon: BookOpen,
     },
-    { 
-      href: '/lessons', 
-      label: 'Aulas', 
+    {
+      href: '/lessons',
+      label: 'Aulas',
       icon: Video,
     },
-    { 
-      href: '/statistics', 
-      label: 'Estatísticas', 
+    {
+      href: '/materials',
+      label: 'Materiais',
+      icon: FileDown,
+    },
+    {
+      href: '/statistics',
+      label: 'Estatísticas',
       icon: BarChart3,
     }
   ]

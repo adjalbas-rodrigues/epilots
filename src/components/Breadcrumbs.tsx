@@ -67,6 +67,7 @@ export default function Breadcrumbs() {
         'users': 'Usuários',
         'edit': 'Editar',
         'lessons': 'Aulas',
+        'materials': 'Materiais',
         'profile': 'Perfil'
       }
       

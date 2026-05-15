@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import apiClient from '@/lib/api'
 import {
   Check, X, Loader2, ArrowLeft, CheckCircle2, AlertCircle,
-  FileQuestion, BookOpen, Video, Sparkles
+  FileQuestion, BookOpen, Video, FileDown, Sparkles
 } from 'lucide-react'
 
 interface Plan {
@@ -23,12 +23,14 @@ interface Plan {
   access_questions?: boolean
   access_courses?: boolean
   access_videos?: boolean
+  access_materials?: boolean
 }
 
 const FEATURE_LIST = [
   { key: 'access_questions', label: '21k+ questões e simulados', icon: FileQuestion },
   { key: 'access_courses', label: 'Curso de exercícios', icon: BookOpen },
-  { key: 'access_videos', label: 'Aulas em vídeo', icon: Video }
+  { key: 'access_videos', label: 'Aulas em vídeo', icon: Video },
+  { key: 'access_materials', label: 'Materiais para download', icon: FileDown },
 ]
 
 export default function PricingPage() {
@@ -115,7 +117,8 @@ export default function PricingPage() {
                   planFeatures={{
                     questions: !!selectedPlan.access_questions,
                     courses: !!selectedPlan.access_courses,
-                    videos: !!selectedPlan.access_videos
+                    videos: !!selectedPlan.access_videos,
+                    materials: !!selectedPlan.access_materials,
                   }}
                   amountCents={selectedPlan.amount_cents}
                   couponCode={couponCode}

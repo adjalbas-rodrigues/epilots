@@ -7,7 +7,7 @@ import SubscriptionRequiredModal from '@/components/SubscriptionRequiredModal'
 import { useAuth } from '@/contexts/AuthContext'
 import { useFeatureGate } from '@/hooks/useFeatureGate'
 import { useMaterials, type Material } from '@/hooks/useMaterials'
-import { getAllCategoryLabels, getCategoryStyle } from '@/lib/material-categories'
+import { getCategoryLabel, getCategoryStyle } from '@/lib/material-categories'
 import apiClient from '@/lib/api'
 import {
   Search,
@@ -32,56 +32,61 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+function useDebounce(value: string, delay: number) {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(t)
+  }, [value, delay])
+  return debounced
+}
+
 export default function MaterialsPage() {
   const router = useRouter()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const { gate, handleError, clearGate } = useFeatureGate()
 
   const [page, setPage] = useState(1)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+  const [searchInput, setSearchInput] = useState('')
+  const [activeCategory, setActiveCategory] = useState('')
   const [selected, setSelected] = useState<Material | null>(null)
 
-  // PDF viewer state
+  const debouncedSearch = useDebounce(searchInput, 300)
+
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
   const [pdfError, setPdfError] = useState<string | null>(null)
   const [downloading, setDownloading] = useState(false)
-
-  // Mobile viewer
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/auth/login')
-    }
+    if (!authLoading && !isAuthenticated) router.push('/auth/login')
   }, [authLoading, isAuthenticated, router])
 
-  const { materials, pagination, loading, error, refetch } = useMaterials(
-    page, PER_PAGE, isAuthenticated, handleError
+  // Reset page when filters change
+  const prevSearch = useRef(debouncedSearch)
+  const prevCategory = useRef(activeCategory)
+  useEffect(() => {
+    if (prevSearch.current !== debouncedSearch || prevCategory.current !== activeCategory) {
+      setPage(1)
+      prevSearch.current = debouncedSearch
+      prevCategory.current = activeCategory
+    }
+  }, [debouncedSearch, activeCategory])
+
+  const { materials, pagination, categories, loading, error, refetch } = useMaterials(
+    page, PER_PAGE, debouncedSearch, activeCategory, isAuthenticated, handleError
   )
 
-  const filteredMaterials = useMemo(() => {
-    let result = materials
-    if (activeCategory) {
-      result = result.filter(m => m.category.key === activeCategory)
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim()
-      result = result.filter(m =>
-        m.title.toLowerCase().includes(q) || m.file_name.toLowerCase().includes(q)
-      )
-    }
-    return result
-  }, [materials, activeCategory, searchQuery])
+  // Category pills from server counts
+  const categoryPills = useMemo(() => {
+    return categories
+      .filter(c => c.count > 0)
+      .sort((a, b) => Number(b.count) - Number(a.count))
+      .map(c => ({ key: c.category, label: getCategoryLabel(c.category), count: Number(c.count) }))
+  }, [categories])
 
-  const availableCategories = useMemo(() => {
-    const all = getAllCategoryLabels()
-    const present = new Set(materials.map(m => m.category.key))
-    return all.filter(c => present.has(c.key))
-  }, [materials])
-
-  // Load PDF blob when selection changes
+  // PDF viewer
   useEffect(() => {
     if (!selected) {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl)
@@ -150,6 +155,7 @@ export default function MaterialsPage() {
   }
 
   const isLoading = authLoading || (loading && materials.length === 0)
+  const totalPages = pagination?.totalPages || 0
 
   return (
     <>
@@ -162,7 +168,6 @@ export default function MaterialsPage() {
           w-full lg:w-[420px] lg:min-w-[420px] flex-shrink-0
           ${mobileOpen ? 'hidden lg:flex' : 'flex'}
         `}>
-          {/* Sidebar header */}
           <div className="px-4 pt-5 pb-3 border-b border-gray-100">
             <div className="flex items-center gap-2.5 mb-3">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center">
@@ -170,23 +175,24 @@ export default function MaterialsPage() {
               </div>
               <h1 className="text-lg font-bold text-gray-900 tracking-tight">Materiais</h1>
               {pagination && (
-                <span className="ml-auto text-xs text-gray-400 font-medium">{pagination.total} arquivos</span>
+                <span className="ml-auto text-xs text-gray-400 font-medium">
+                  {pagination.total} arquivo{pagination.total !== 1 ? 's' : ''}
+                </span>
               )}
             </div>
 
-            {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               <input
                 type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                value={searchInput}
+                onChange={e => setSearchInput(e.target.value)}
                 placeholder="Buscar material..."
                 className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-colors"
               />
-              {searchQuery && (
+              {searchInput && (
                 <button
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => setSearchInput('')}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-gray-400 hover:text-gray-600"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -195,11 +201,10 @@ export default function MaterialsPage() {
             </div>
           </div>
 
-          {/* Category pills */}
-          {availableCategories.length > 0 && (
+          {categoryPills.length > 0 && (
             <div className="px-4 py-2.5 border-b border-gray-100 flex gap-1.5 flex-wrap">
               <button
-                onClick={() => setActiveCategory(null)}
+                onClick={() => setActiveCategory('')}
                 className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors ${
                   !activeCategory
                     ? 'bg-gray-900 text-white'
@@ -208,13 +213,13 @@ export default function MaterialsPage() {
               >
                 Todos
               </button>
-              {availableCategories.map(cat => {
+              {categoryPills.map(cat => {
                 const active = activeCategory === cat.key
                 const s = getCategoryStyle(cat.key)
                 return (
                   <button
                     key={cat.key}
-                    onClick={() => setActiveCategory(active ? null : cat.key)}
+                    onClick={() => setActiveCategory(active ? '' : cat.key)}
                     className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors ${
                       active
                         ? `${s.bgColor} ${s.color}`
@@ -228,7 +233,6 @@ export default function MaterialsPage() {
             </div>
           )}
 
-          {/* Material list */}
           <div className="flex-1 overflow-y-auto">
             {isLoading && (
               <div className="p-4 space-y-2">
@@ -254,15 +258,15 @@ export default function MaterialsPage() {
               </div>
             )}
 
-            {!loading && !error && filteredMaterials.length === 0 && (
+            {!loading && !error && materials.length === 0 && (
               <div className="p-6 text-center">
                 <FileText className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                 <p className="text-sm text-gray-500">
-                  {searchQuery || activeCategory ? 'Nenhum material encontrado.' : 'Nenhum material disponivel.'}
+                  {searchInput || activeCategory ? 'Nenhum material encontrado.' : 'Nenhum material disponível.'}
                 </p>
-                {(searchQuery || activeCategory) && (
+                {(searchInput || activeCategory) && (
                   <button
-                    onClick={() => { setSearchQuery(''); setActiveCategory(null) }}
+                    onClick={() => { setSearchInput(''); setActiveCategory('') }}
                     className="mt-2 text-xs text-gray-600 hover:underline"
                   >
                     Limpar filtros
@@ -271,11 +275,11 @@ export default function MaterialsPage() {
               </div>
             )}
 
-            {!loading && !error && filteredMaterials.length > 0 && (
+            {!loading && !error && materials.length > 0 && (
               <ul className="py-1">
-                {filteredMaterials.map(m => {
+                {materials.map(m => {
                   const isActive = selected?.id === m.id
-                  const s = getCategoryStyle(m.category.key)
+                  const s = getCategoryStyle(m.category)
                   return (
                     <li key={m.id}>
                       <button
@@ -299,7 +303,7 @@ export default function MaterialsPage() {
                           </p>
                           <div className="flex items-center gap-2 mt-1">
                             <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${s.bgColor} ${s.color}`}>
-                              {m.category.label}
+                              {getCategoryLabel(m.category)}
                             </span>
                             <span className="text-[11px] text-gray-400">{formatFileSize(m.file_size)}</span>
                           </div>
@@ -312,11 +316,10 @@ export default function MaterialsPage() {
             )}
           </div>
 
-          {/* Pagination footer */}
-          {pagination && pagination.totalPages > 1 && (
+          {totalPages > 1 && (
             <div className="px-4 py-2.5 border-t border-gray-200 flex items-center justify-between bg-gray-50/50">
               <span className="text-[11px] text-gray-500">
-                Pag. {pagination.page} de {pagination.totalPages}
+                Pág. {pagination!.page} de {totalPages}
               </span>
               <div className="flex items-center gap-1">
                 <button
@@ -327,8 +330,8 @@ export default function MaterialsPage() {
                   <ChevronLeft className="w-4 h-4 text-gray-600" />
                 </button>
                 <button
-                  onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
-                  disabled={page >= pagination.totalPages}
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
                   className="p-1.5 rounded-md hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronRight className="w-4 h-4 text-gray-600" />
@@ -357,9 +360,7 @@ export default function MaterialsPage() {
 
           {selected && (
             <>
-              {/* Viewer header */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-white flex-shrink-0">
-                {/* Mobile back button */}
                 <button
                   onClick={() => setMobileOpen(false)}
                   className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
@@ -382,7 +383,6 @@ export default function MaterialsPage() {
                 </button>
               </div>
 
-              {/* PDF content */}
               <div className="flex-1 relative">
                 {pdfLoading && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-50">

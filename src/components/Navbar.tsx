@@ -78,6 +78,7 @@ export default function Navbar({ isAuthenticated = false, userName = 'Aluno' }: 
       href: '/materials',
       label: 'Materiais',
       icon: FileDown,
+      isNew: true,
     },
     {
       href: '/statistics',
@@ -158,6 +159,11 @@ export default function Navbar({ isAuthenticated = false, userName = 'Aluno' }: 
                           isActive ? 'scale-110' : 'group-hover:scale-110'
                         }`} />
                         {item.label}
+                        {item.isNew && (
+                          <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase leading-none rounded-full bg-yellow-400 text-yellow-900 tracking-wider">
+                            Novo
+                          </span>
+                        )}
                       </span>
                     </Link>
                   )
@@ -377,7 +383,14 @@ export default function Navbar({ isAuthenticated = false, userName = 'Aluno' }: 
                           <Icon className="w-5 h-5" />
                         </div>
                         <div className="flex-1">
-                          <span className="font-semibold text-base">{item.label}</span>
+                          <span className="font-semibold text-base flex items-center gap-2">
+                            {item.label}
+                            {item.isNew && (
+                              <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase leading-none rounded-full bg-yellow-400 text-yellow-900 tracking-wider">
+                                Novo
+                              </span>
+                            )}
+                          </span>
                           {isActive && (
                             <p className="text-xs mt-0.5 opacity-70">Você está aqui</p>
                           )}

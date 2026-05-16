@@ -2,6 +2,7 @@
 
 import { Eye, Download, Loader2, FileText } from 'lucide-react'
 import type { Material } from '@/hooks/useMaterials'
+import { getCategoryLabel, getCategoryStyle } from '@/lib/material-categories'
 
 interface MaterialRowProps {
   material: Material
@@ -24,7 +25,7 @@ export default function MaterialRow({
   onView,
   onDownload,
 }: MaterialRowProps) {
-  const cat = material.category
+  const catStyle = getCategoryStyle(material.category)
 
   return (
     <tr
@@ -34,7 +35,6 @@ export default function MaterialRow({
         animationFillMode: 'both',
       }}
     >
-      {/* Title + category badge */}
       <td className="px-4 py-3 sm:px-6 sm:py-4">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center mt-0.5">
@@ -46,9 +46,9 @@ export default function MaterialRow({
             </p>
             <div className="mt-1.5 flex items-center gap-2 flex-wrap">
               <span
-                className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wide border ${cat.bgColor} ${cat.color} ${cat.borderColor}`}
+                className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wide border ${catStyle.bgColor} ${catStyle.color} ${catStyle.borderColor}`}
               >
-                {cat.label}
+                {getCategoryLabel(material.category)}
               </span>
               {/* Mobile-only meta */}
               <span className="text-xs text-gray-400 sm:hidden">

@@ -620,10 +620,12 @@ class ApiClient {
   }
 
   // Materials (student)
-  async getMaterials(params?: { page?: number; limit?: number }) {
+  async getMaterials(params?: { page?: number; limit?: number; search?: string; category?: string }) {
     const qs = new URLSearchParams()
     if (params?.page) qs.set('page', String(params.page))
     if (params?.limit) qs.set('limit', String(params.limit))
+    if (params?.search) qs.set('search', params.search)
+    if (params?.category) qs.set('category', params.category)
     const query = qs.toString()
     return this.request(`/materials${query ? `?${query}` : ''}`)
   }

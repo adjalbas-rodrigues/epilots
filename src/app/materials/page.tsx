@@ -57,12 +57,9 @@ export default function MaterialsPage() {
     }
   }, [authLoading, isAuthenticated, router])
 
-  const { materials, pagination, loading, error, refetch } = useMaterials({
-    page,
-    limit: PER_PAGE,
-    enabled: isAuthenticated,
-    onGateError: handleError,
-  })
+  const { materials, pagination, loading, error, refetch } = useMaterials(
+    page, PER_PAGE, isAuthenticated, handleError
+  )
 
   const filteredMaterials = useMemo(() => {
     let result = materials

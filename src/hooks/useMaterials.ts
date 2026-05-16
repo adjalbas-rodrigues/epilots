@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import apiClient from '@/lib/api'
 import { extractCategory, type CategoryDefinition } from '@/lib/material-categories'
 
@@ -22,13 +22,6 @@ export interface PaginationData {
   totalPages: number
 }
 
-interface UseMaterialsParams {
-  page: number
-  limit: number
-  enabled: boolean
-  onGateError: (err: any) => boolean
-}
-
 interface UseMaterialsResult {
   materials: Material[]
   pagination: PaginationData | null
@@ -37,45 +30,40 @@ interface UseMaterialsResult {
   refetch: () => void
 }
 
-const ITEMS_PER_PAGE = 20
-
-export function useMaterials({
-  page,
-  limit = ITEMS_PER_PAGE,
-  enabled,
-  onGateError,
-}: UseMaterialsParams): UseMaterialsResult {
+export function useMaterials(
+  page: number,
+  limit: number,
+  enabled: boolean,
+  onGateError: (err: any) => boolean,
+): UseMaterialsResult {
   const [materials, setMaterials] = useState<Material[]>([])
   const [pagination, setPagination] = useState<PaginationData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const gateRef = useRef(onGateError)
+  gateRef.current = onGateError
 
   const fetchMaterials = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       const res: any = await apiClient.getMaterials({ page, limit })
-      const rawMaterials = res.data?.materials || []
-      const enriched: Material[] = rawMaterials.map((m: any) => ({
+      const raw = res.data?.materials || []
+      setMaterials(raw.map((m: any) => ({
         ...m,
         category: extractCategory(m.file_name || m.title || ''),
-      }))
-      setMaterials(enriched)
+      })))
       setPagination(res.data?.pagination || null)
     } catch (err: any) {
-      if (onGateError(err)) return
-      setError(
-        err?.message || 'Nao foi possivel carregar os materiais. Verifique sua conexao e tente novamente.'
-      )
+      if (gateRef.current(err)) return
+      setError(err?.message || 'Erro ao carregar materiais.')
     } finally {
       setLoading(false)
     }
-  }, [page, limit, onGateError])
+  }, [page, limit])
 
   useEffect(() => {
-    if (enabled) {
-      fetchMaterials()
-    }
+    if (enabled) fetchMaterials()
   }, [enabled, fetchMaterials])
 
   return { materials, pagination, loading, error, refetch: fetchMaterials }

@@ -620,8 +620,12 @@ class ApiClient {
   }
 
   // Materials (student)
-  async getMaterials() {
-    return this.request('/materials?limit=500');
+  async getMaterials(params?: { page?: number; limit?: number }) {
+    const qs = new URLSearchParams()
+    if (params?.page) qs.set('page', String(params.page))
+    if (params?.limit) qs.set('limit', String(params.limit))
+    const query = qs.toString()
+    return this.request(`/materials${query ? `?${query}` : ''}`)
   }
 
   async downloadMaterial(id: number): Promise<Blob> {

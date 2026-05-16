@@ -621,7 +621,7 @@ class ApiClient {
 
   // Materials (student)
   async getMaterials() {
-    return this.request('/materials');
+    return this.request('/materials?limit=500');
   }
 
   async downloadMaterial(id: number): Promise<Blob> {

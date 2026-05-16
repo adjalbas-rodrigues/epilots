@@ -7,9 +7,9 @@ export interface CategoryDefinition {
 }
 
 const CATEGORY_RULES: Array<{ pattern: RegExp; key: string; label: string }> = [
-  { pattern: /^(ATUALIZAcaO|Atualizacao|MIG-)/i, key: 'atualizacoes', label: 'Atualizacoes' },
+  { pattern: /^(Atualizacao|MIG-)/i, key: 'atualizacoes', label: 'Atualizações' },
   { pattern: /^SC-/i, key: 'simulados', label: 'Simulado' },
-  { pattern: /^C1[0-9]R/i, key: 'cadernos', label: 'Caderno de Questoes' },
+  { pattern: /^C1[0-9]R/i, key: 'cadernos', label: 'Caderno de Questões' },
   { pattern: /^CBO-/i, key: 'cbo', label: 'CBO' },
 ]
 
